@@ -11,15 +11,17 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : `bun run test` (turbo) exécute les tests de tous les packages et passe. ✅
 
-## 2. Fondations chaîne (`packages/chain`)
+## 2. Fondations chaîne (`packages/chain`) ✅
 
-- [ ] `canonical.py` — sérialisation canonique unique (sort_keys, ascii, entiers only) + test de déterminisme
-- [ ] `wallet.py` — Ed25519 (PyNaCl), adresse = sha256(pubkey) tronqué
-- [ ] `tx.py` — tx signée, `txid` sur les signing bytes, signature jamais dans le hash
-- [ ] `block.py` — header (height, prev_hash, proposer, round, tx_root, state_root), hash sans signatures
-- [ ] `state.py` — account-based `{balance, nonce}` + stake **réellement débité** (correctif audit), `MIN_PRICE` (correctif audit), faucet plafonné (correctif audit)
+- [x] `canonical.py` — sérialisation canonique unique (sort_keys, ascii, entiers only) + test de déterminisme
+- [x] `wallet.py` — Ed25519 (PyNaCl), adresse = sha256(pubkey) tronqué
+- [x] `tx.py` — tx signée, `txid` sur les signing bytes, signature jamais dans le hash
+- [x] `block.py` — header (height, prev_hash, proposer, round, tx_root, state_root), hash sans signatures
+- [x] `state.py` — account-based `{balance, nonce}` + stake **réellement débité** par `register_agent` (correctif audit)
+- [x] Faucet supprimé par design : les soldes viennent uniquement des allocations du genesis (correctif audit, plus fort que le plafonnement)
+- [x] `MIN_PRICE` défini dans `params.py` — appliqué par `create_task` à l'étape 4 (correctif audit)
 
-**Sortie** : sign/verify OK, txid stable, altérer un bloc casse la chaîne, apply_block déterministe.
+**Sortie** : sign/verify OK, txid stable, altérer un bloc casse la chaîne, apply_block déterministe. ✅ (40 tests)
 
 ## 3. Moteur économique
 
