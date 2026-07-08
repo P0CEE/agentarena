@@ -2,7 +2,7 @@
 // règlement en cartes-reçus reliées par des fils.
 
 import { useEffect, useMemo, useState } from "react";
-import { ReactFlow, type Edge, type Node } from "@xyflow/react";
+import { Background, BackgroundVariant, ReactFlow, type Edge, type Node } from "@xyflow/react";
 import { getTaskDetail, type TaskDetail } from "../api";
 import type { Network } from "../hooks";
 import {
@@ -131,7 +131,9 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
         maxZoom={1.6}
         nodesConnectable={false}
         elementsSelectable={false}
-      />
+      >
+        <Background variant={BackgroundVariant.Dots} gap={30} size={1.4} color="#ddd8c8" />
+      </ReactFlow>
       <PhaseBar task={detail.task} height={network.height} />
     </div>
   );

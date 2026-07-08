@@ -3,7 +3,13 @@
 // fond plat. Le rayon du proposer courant est olive.
 
 import { useMemo } from "react";
-import { ReactFlow, ViewportPortal, type Node } from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  ReactFlow,
+  ViewportPortal,
+  type Node,
+} from "@xyflow/react";
 import type { Task } from "../api";
 import type { Network } from "../hooks";
 import { AgentPill, CenterPlate } from "../components/plates";
@@ -84,6 +90,7 @@ export function NetworkView({
       nodesConnectable={false}
       elementsSelectable={false}
     >
+      <Background variant={BackgroundVariant.Dots} gap={30} size={1.4} color="#ddd8c8" />
       <ViewportPortal>
         <Rings spokes={spokes} />
       </ViewportPortal>
