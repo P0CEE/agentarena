@@ -13,12 +13,16 @@ from arena_chain.errors import ChainError
 from arena_node.engine import Engine
 
 
-def create_app(engine: Engine, run_engine: bool = False) -> FastAPI:
+def create_app(engine: Engine, run_engine: bool = False, agent_runner=None) -> FastAPI:
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
-        task = asyncio.create_task(engine.run()) if run_engine else None
+        tasks = []
+        if run_engine:
+            tasks.append(asyncio.create_task(engine.run()))
+            if agent_runner is not None:
+                tasks.append(asyncio.create_task(agent_runner.run()))
         yield
-        if task is not None:
+        for task in tasks:
             task.cancel()
 
     app = FastAPI(title="agentarena-node", lifespan=lifespan)

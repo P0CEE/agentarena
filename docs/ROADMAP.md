@@ -59,13 +59,15 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : ✅ testé en transport direct (1 mort sur 4 → timeout, round suivant, ça continue ; 2 morts → halt, la sûreté avant la liveness ; catch-up exact) + smoke test réel : 4 process uvicorn localhost finalisent en synchro (h=16 à 6 s, h=24 à 9 s, block_time 0.3 s). (105 tests chain + 10 node)
 
-## 6. Agents Mistral (`packages/agents`)
+## 6. Agents Mistral (`packages/agents`) ✅
 
-- [ ] Interface `Agent` (build, judge) + stub déterministe pour les tests (ADR-0001)
-- [ ] Client Mistral (clé unique `MISTRAL_API_KEY`, modèle éco), prompts builder et juge
-- [ ] Timeout/erreur Mistral → no-show → jail (avec grâce)
+- [x] Interface `Agent` (build, judge) + stub déterministe pour les tests (ADR-0001) — les agents rendent des poids bruts, le runner normalise en vecteur protocolaire (somme == SCALE, via split exact)
+- [x] Client Mistral (clé unique `MISTRAL_API_KEY`, `mistral-small-latest`) : prompts builder et juge, rendus anonymisés (A, B, C) côté juge, parsing JSON tolérant
+- [x] Timeout/erreur Mistral → pas de tx → no-show → jail (avec grâce) — testé avec un builder dont le LLM tombe en panne : la manche aboutit avec les 2 autres
+- [x] `AgentRunner` : observe la chaîne et joue le rôle assigné aux bonnes fenêtres (build → commit → reveal → judge → notes), appels LLM en tâches de fond, nonces auto-gérés
+- [x] Câblage node : `config.agent.kind` (stub | mistral), runner lancé avec l'engine
 
-**Sortie** : une manche avec vrais appels Mistral aboutit ; les tests passent sans réseau (stub).
+**Sortie** : ✅ e2e : 10 nodes + 10 runners jouent une manche entière en totale autonomie (3 rendus, 7 vecteurs de notes, règlement Yuma, state_root identique partout). Les tests passent sans réseau (stub). ⏳ La manche « vrais appels Mistral » attend une `MISTRAL_API_KEY` dans `.env` (code prêt, smoke à l'étape 7 via le CLI). (105+14+12 tests)
 
 ## 7. CLI (`packages/cli`)
 

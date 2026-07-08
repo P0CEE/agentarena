@@ -5,7 +5,7 @@ description = "Runner d'agent : client Mistral (build + jugement) et stub determ
 requires-python = ">=3.12"
 dependencies = [
     "arena-chain",
-    "mistralai>=1.5",
+    "mistralai>=2",
 ]
 
 [dependency-groups]

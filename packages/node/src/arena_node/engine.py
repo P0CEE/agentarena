@@ -225,8 +225,12 @@ class Engine:
         self.votes.clear()
         self.timeouts.clear()
         self._last_progress = time.monotonic()
-        for tx in block["txs"]:
-            self.mempool.pop(txid(tx), None)
+        accounts = self.state.data["accounts"]
+        self.mempool = {
+            tid: tx
+            for tid, tx in self.mempool.items()
+            if tx["nonce"] >= accounts.get(tx["sender"], {"nonce": 0})["nonce"]
+        }  # purge les tx incluses et les nonces perimes
         self._publish(
             {"type": "block", "height": self.height, "hash": block_hash(block["header"]),
              "txs": len(block["txs"])}
