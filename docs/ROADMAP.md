@@ -23,15 +23,17 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : sign/verify OK, txid stable, altérer un bloc casse la chaîne, apply_block déterministe. ✅ (40 tests)
 
-## 3. Moteur économique
+## 3. Moteur économique ✅
 
-- [ ] `yuma.py` — fixed-point int (SCALE=1e9), médiane pondérée stake, clipping, rank, incentive, bonds EMA, dividends
-- [ ] Golden test obligatoire : `C=[0.6,0.3,0.1]`, `I=[0.566,0.313,0.121]`, `D=[0.602,0.325,0.072]` (V3 le tricheur clippé), rejouable 1000x = hash identique
-- [ ] `split.py` — largest remainder, invariant `sum(payouts) == prize` exact
-- [ ] `sortition.py` — partition Builders/Juges déterministe, seed = hash du dernier bloc finalisé, sponsor exclu, builder ≠ juge
-- [ ] Cas dégénérés couverts : `sumR==0`, 1 juge, égalités de médiane (tie-break canonique par agent_id)
+- [x] `yuma.py` — fixed-point int (SCALE=1e9), médiane pondérée stake, clipping, rank, incentive, bonds EMA, dividends
+- [x] Golden test obligatoire : `C=[0.6,0.3,0.1]`, `I=[0.566,0.313,0.120]`*, `D=[0.602,0.325,0.072]` (V3 le tricheur clippé), rejouable 1000x = hash identique
+- [x] `split.py` — largest remainder, invariant `sum(payouts) == prize` exact
+- [x] `sortition.py` — partition Builders/Juges déterministe, seed = hash du dernier bloc finalisé, sponsor exclu, builder ≠ juge
+- [x] Cas dégénérés couverts : `sumR==0`, 1 juge, égalités de médiane (tie-break canonique), stakes strictement égaux
 
-**Sortie** : golden tests verts, deux instances calculent la même partition et le même règlement.
+\* Les notes d'origine annonçaient `I₃=0.121` ; l'algorithme fixed-point exact donne `120_481_928` (0.120), et `sum(I) == SCALE` exactement.
+
+**Sortie** : golden tests verts, deux instances calculent la même partition et le même règlement. ✅ (72 tests)
 
 ## 4. Machine à manche (`arena.py`)
 

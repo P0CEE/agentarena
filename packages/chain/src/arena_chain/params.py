@@ -10,5 +10,9 @@ SCALE = 10**9  # fixed-point : 1.0 == 1_000_000_000
 BFT_QUORUM_NUM = 2
 BFT_QUORUM_DEN = 3
 
+KAPPA = SCALE // 2  # seuil de la mediane ponderee Yuma (0.5) — PAS le quorum BFT
+ALPHA_BONDS_NUM = 1  # EMA des bonds : B = (1*dB + 9*B_prev) // 10
+ALPHA_BONDS_DEN = 10
+
 MIN_STAKE = 1_000  # stake minimal d'un agent, reellement debite (correctif audit)
 MIN_PRICE = 10 * MIN_STAKE  # prix minimal d'une task, rejette le spam (correctif audit)
