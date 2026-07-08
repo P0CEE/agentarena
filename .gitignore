@@ -1,0 +1,23 @@
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# JS / TS
+node_modules/
+.turbo/
+apps/dashboard/dist/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
