@@ -4,7 +4,7 @@
 import type { NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
 import type { ScoreRecord, Submission, Task } from "../api";
-import { DashedRule, Pin, RoleChip, Stamp } from "./bits";
+import { DashedRule, RoleChip, Stamp } from "./bits";
 
 const fmt = new Intl.NumberFormat("fr-FR");
 
@@ -20,12 +20,10 @@ function hiddenHandles() {
 
 function Shell({
   tilt,
-  lime,
   width = 220,
   children,
 }: {
   tilt: number;
-  lime?: boolean;
   width?: number;
   children: React.ReactNode;
 }) {
@@ -34,9 +32,6 @@ function Shell({
       className="receipt-drop relative"
       style={{ width, ["--tilt" as string]: `${tilt}deg`, transform: `rotate(${tilt}deg)` }}
     >
-      <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-[46%]">
-        <Pin lime={lime} />
-      </div>
       <div className="receipt-edge relative overflow-hidden rounded-t-[4px] bg-card px-3.5 pt-3.5 pb-5 shadow-[0_1px_2px_rgba(30,25,10,0.06),0_6px_18px_rgba(30,25,10,0.10)]">
         <div className="receipt-texture pointer-events-none absolute inset-0" />
         <div className="relative">{children}</div>
@@ -229,7 +224,7 @@ export function SettlementReceipt({ data }: NodeProps) {
   const { task, names } = data as SettlementReceiptData;
   const result = task.result;
   return (
-    <Shell tilt={1.5} lime width={240}>
+    <Shell tilt={1.5} width={240}>
       {hiddenHandles()}
       <div className="flex items-start justify-between gap-2">
         <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">

@@ -132,7 +132,7 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
         nodesConnectable={false}
         elementsSelectable={false}
       >
-        <Background variant={BackgroundVariant.Dots} gap={30} size={1.4} color="#ddd8c8" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={2.2} color="#cfc9b2" />
       </ReactFlow>
       <PhaseBar task={detail.task} height={network.height} />
     </div>

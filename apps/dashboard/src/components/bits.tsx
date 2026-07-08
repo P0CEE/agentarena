@@ -1,34 +1,4 @@
-// Petites pièces partagées : punaise, tampon, glyphe pixel, chip.
-
-export function Pin({ lime = false }: { lime?: boolean }) {
-  const id = lime ? "pin-lime" : "pin-steel";
-  return (
-    <svg viewBox="0 0 24 34" className="size-7" aria-hidden="true">
-      <defs>
-        <radialGradient id={id} cx="32%" cy="28%" r="68%">
-          {lime ? (
-            <>
-              <stop offset="0%" stopColor="#f8ff9a" />
-              <stop offset="40%" stopColor="#e4f222" />
-              <stop offset="100%" stopColor="#9aad00" />
-            </>
-          ) : (
-            <>
-              <stop offset="0%" stopColor="#f8f8f6" />
-              <stop offset="40%" stopColor="#c8c8c4" />
-              <stop offset="100%" stopColor="#5a5a56" />
-            </>
-          )}
-        </radialGradient>
-      </defs>
-      <ellipse cx="12" cy="12.5" rx="5.8" ry="1.3" fill="rgba(0,0,0,0.12)" />
-      <circle cx="12" cy="9.5" r="7.2" fill={`url(#${id})`} />
-      <ellipse cx="9.8" cy="7.4" rx="2.4" ry="1.5" fill="white" opacity="0.6" />
-      <rect x="11.15" y="15.2" width="1.7" height="13.5" rx="0.85" fill="#6d6d69" />
-      <path d="M12 28.7 L10.4 32.2 L13.6 32.2 Z" fill="#3a3a38" />
-    </svg>
-  );
-}
+// Petites pièces partagées : tampon, glyphe pixel, chip.
 
 const STAMP_COLORS: Record<string, string> = {
   COMMITTED: "var(--color-ink-faint)",

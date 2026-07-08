@@ -79,22 +79,54 @@ export function NetworkView({
   }, [network, activeTask, count]);
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={[]}
-      nodeTypes={nodeTypes}
-      fitView
-      fitViewOptions={{ padding: 0.14 }}
-      minZoom={0.25}
-      maxZoom={1.6}
-      nodesConnectable={false}
-      elementsSelectable={false}
-    >
-      <Background variant={BackgroundVariant.Dots} gap={30} size={1.4} color="#ddd8c8" />
-      <ViewportPortal>
-        <Rings spokes={spokes} />
-      </ViewportPortal>
-    </ReactFlow>
+    <div className="relative h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={[]}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.14 }}
+        minZoom={0.25}
+        maxZoom={1.6}
+        nodesConnectable={false}
+        elementsSelectable={false}
+      >
+        <Background variant={BackgroundVariant.Dots} gap={24} size={2.2} color="#cfc9b2" />
+        <ViewportPortal>
+          <Rings spokes={spokes} />
+        </ViewportPortal>
+      </ReactFlow>
+      <Legend />
+    </div>
+  );
+}
+
+function Legend() {
+  const swatch = (color: string) => (
+    <span className="inline-block size-2 rounded-[2px]" style={{ backgroundColor: color }} />
+  );
+  return (
+    <div className="pointer-events-none absolute bottom-4 left-4 space-y-1.5 rounded-[8px] bg-card/90 px-3 py-2.5 text-[9px] uppercase tracking-[0.1em] text-ink-soft shadow-[0_1px_4px_rgba(30,25,10,0.10)] backdrop-blur">
+      <div className="flex items-center gap-2">
+        {swatch("var(--color-amber)")}
+        <span>builder de la manche active</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {swatch("var(--color-violet)")}
+        <span>juge de la manche active</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className="inline-block h-0 w-4 border-t-2 border-dashed"
+          style={{ borderColor: "var(--color-olive)" }}
+        />
+        <span>proposer du prochain bloc</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {swatch("var(--color-ink-faint)")}
+        <span>sans role / delave = down ou jailed</span>
+      </div>
+    </div>
   );
 }
 
