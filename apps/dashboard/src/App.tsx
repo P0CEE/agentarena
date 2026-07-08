@@ -85,7 +85,7 @@ export default function App() {
           )}
         </section>
 
-        <aside className="flex w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-line bg-paper/60 p-3">
+        <aside className="flex w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-line bg-paper p-3">
           <Composer
             base={network.nodes[0]?.url}
             disabled={!network.connected}

@@ -80,6 +80,52 @@ export function PixelGlyph({ size = 16 }: { size?: number }) {
   );
 }
 
+// Icone pixel identicon : deterministe par adresse, palette par role
+// (comme les icones departement de la reference).
+const ICON_PALETTES: Record<string, string[]> = {
+  builder: ["#e77b14", "#ed9037", "#b45f10"],
+  juge: ["#8a72e5", "#9b83f8", "#5a3fd6"],
+  none: ["#a8a69b", "#8b897e", "#6f6d64"],
+};
+
+export function PixelIcon({
+  address,
+  role,
+  muted = false,
+}: {
+  address: string;
+  role: "builder" | "juge" | null;
+  muted?: boolean;
+}) {
+  const palette = ICON_PALETTES[role ?? "none"];
+  const hex = address || "0";
+  const cells: Array<[number, number, string]> = [];
+  for (let row = 0; row < 5; row += 1) {
+    for (let col = 0; col < 3; col += 1) {
+      const nibble = parseInt(hex[(row * 3 + col) % hex.length], 16) || 0;
+      if (nibble >= 7) {
+        const fill = palette[(row + col) % palette.length];
+        cells.push([col, row, fill]);
+        if (col < 2) cells.push([4 - col, row, fill]); // symetrie identicon
+      }
+    }
+  }
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 5 5"
+      style={{ imageRendering: "pixelated", opacity: muted ? 0.45 : 1 }}
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      {cells.map(([x, y, fill], index) => (
+        <rect key={index} x={x} y={y} width="1" height="1" fill={fill} />
+      ))}
+    </svg>
+  );
+}
+
 export function RoleChip({ role }: { role: "builder" | "juge" | "sponsor" }) {
   const color =
     role === "builder"
