@@ -1,1 +1,95 @@
 @import "tailwindcss";
+
+@theme {
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Instrument Serif", Georgia, serif;
+
+  --color-paper: #f2efe7;
+  --color-card: #fcfbf7;
+  --color-screen: #1b1b1e;
+  --color-ink: #2a2924;
+  --color-ink-soft: #6f6d64;
+  --color-ink-faint: #a6a399;
+  --color-line: #e1ddcf;
+  --color-olive: #7a9200;
+  --color-olive-soft: #e4f222;
+  --color-amber: #e77b14;
+  --color-violet: #8a72e5;
+  --color-danger: #c2410c;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* grain papier discret */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(90, 80, 50, 0.05) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+
+/* texture scanlines des recus (ref Ramp) */
+.receipt-texture {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(127, 127, 127, 0.05) 3px,
+    rgba(127, 127, 127, 0.05) 4px
+  );
+}
+
+/* bord dechire en bas des recus */
+.receipt-edge {
+  clip-path: polygon(
+    0 0, 100% 0, 100% calc(100% - 5px),
+    95% 100%, 90% calc(100% - 5px), 85% 100%, 80% calc(100% - 5px),
+    75% 100%, 70% calc(100% - 5px), 65% 100%, 60% calc(100% - 5px),
+    55% 100%, 50% calc(100% - 5px), 45% 100%, 40% calc(100% - 5px),
+    35% 100%, 30% calc(100% - 5px), 25% 100%, 20% calc(100% - 5px),
+    15% 100%, 10% calc(100% - 5px), 5% 100%, 0 calc(100% - 5px)
+  );
+}
+
+@keyframes receipt-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) rotate(var(--tilt, 0deg));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+}
+
+.receipt-drop {
+  animation: receipt-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes block-tick {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.block-tick {
+  animation: block-tick 0.35s ease-out;
+}
+
+/* react-flow : fond transparent, attribution discrete */
+.react-flow {
+  background: transparent;
+}
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-ink-faint);
+  font-size: 9px;
+}

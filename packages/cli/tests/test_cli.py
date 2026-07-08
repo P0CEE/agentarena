@@ -46,6 +46,9 @@ def test_init_cree_un_reseau_coherent(tmp_path: Path) -> None:
     # Chaque node est un agent stake.
     for entry in network["nodes"]:
         assert first_genesis["agents"][entry["address"]] > 0
+    # Seul le node de reference detient le wallet sponsor (endpoint dashboard).
+    assert configs[0]["sponsor_seed"] == sponsor["seed"]
+    assert all("sponsor_seed" not in config for config in configs[1:])
 
 
 def test_init_refuse_un_pool_trop_petit(tmp_path: Path) -> None:

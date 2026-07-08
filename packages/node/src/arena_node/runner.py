@@ -27,7 +27,7 @@ from arena_node.server import create_app
 from arena_node.transport import HttpTransport
 
 
-def build_node(config: dict, transport=None) -> tuple[Engine, AgentRunner]:
+def build_node(config: dict, transport=None) -> tuple[Engine, AgentRunner, Wallet | None]:
     wallet = Wallet.from_seed(bytes.fromhex(config["seed"]))
     genesis = config["genesis"]
     state, genesis_block = make_genesis(
@@ -44,7 +44,9 @@ def build_node(config: dict, transport=None) -> tuple[Engine, AgentRunner]:
         round_timeout=float(config.get("round_timeout", 8.0)),
     )
     agent = _build_agent(config.get("agent", {}), wallet.address)
-    return engine, AgentRunner(engine, wallet, agent)
+    sponsor = config.get("sponsor_seed")
+    sponsor_wallet = Wallet.from_seed(bytes.fromhex(sponsor)) if sponsor else None
+    return engine, AgentRunner(engine, wallet, agent), sponsor_wallet
 
 
 def _build_agent(config: dict, address: str) -> Agent:
@@ -64,8 +66,10 @@ def _build_agent(config: dict, address: str) -> Agent:
 
 
 def run_node(config: dict) -> None:
-    engine, agent_runner = build_node(config)
-    app = create_app(engine, run_engine=True, agent_runner=agent_runner)
+    engine, agent_runner, sponsor_wallet = build_node(config)
+    app = create_app(
+        engine, run_engine=True, agent_runner=agent_runner, sponsor_wallet=sponsor_wallet
+    )
     uvicorn.run(
         app,
         host="127.0.0.1",

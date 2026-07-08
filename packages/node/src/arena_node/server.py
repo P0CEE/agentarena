@@ -3,17 +3,26 @@
 import asyncio
 import contextlib
 import json
+import secrets
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
+from arena_chain.block import block_hash
 from arena_chain.errors import ChainError
+from arena_chain.tx import make_tx
+from arena_chain.wallet import Wallet
 
 from arena_node.engine import Engine
 
 
-def create_app(engine: Engine, run_engine: bool = False, agent_runner=None) -> FastAPI:
+def create_app(
+    engine: Engine,
+    run_engine: bool = False,
+    agent_runner=None,
+    sponsor_wallet: Wallet | None = None,
+) -> FastAPI:
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
         tasks = []
@@ -57,6 +66,40 @@ def create_app(engine: Engine, run_engine: bool = False, agent_runner=None) -> F
         await engine.handle_timeout(await request.json())
         return {"ok": True}
 
+    # --- sponsor (node de reference uniquement : il detient le wallet sponsor) ---
+
+    if sponsor_wallet is not None:
+
+        @app.post("/sponsor/tasks")
+        async def sponsor_create_task(request: Request) -> dict:
+            body = await request.json()
+            task_id = f"task-{secrets.token_hex(3)}"
+            account = engine.state.data["accounts"].get(sponsor_wallet.address, {"nonce": 0})
+            pending = sum(
+                1 for tx in engine.mempool.values() if tx["sender"] == sponsor_wallet.address
+            )
+            tx = make_tx(
+                sponsor_wallet,
+                account["nonce"] + pending,
+                {
+                    "type": "create_task",
+                    "task": task_id,
+                    "prize": body.get("prize", 0),
+                    "brief": str(body.get("brief", "")).strip(),
+                },
+            )
+            # Validation immediate sur un clone : une tx invalide (prix trop bas,
+            # pool insuffisant) est refusee en 400 au lieu d'etre silencieusement
+            # abandonnee au seal.
+            probe = engine.state.clone()
+            probe.begin_block(engine.next_height, block_hash(engine.last_header))
+            try:
+                probe.apply_tx(tx)
+                await engine.handle_tx(tx)
+            except ChainError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            return {"task": task_id}
+
     # --- lecture (dashboard, CLI, catch-up) ---
 
     @app.get("/status")
@@ -68,7 +111,7 @@ def create_app(engine: Engine, run_engine: bool = False, agent_runner=None) -> F
             "height": engine.height,
             "round": engine.round,
             "mempool": len(engine.mempool),
-            "peers": len(engine.peers),
+            "peers": list(engine.peers),
             "validators": len(engine.validators()),
             "jailed_until": me.get("jailed_until", 0),
             "proposer_next": engine.is_proposer(),

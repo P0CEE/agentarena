@@ -79,14 +79,15 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : ✅ vérifié en réel : `arena init && arena start && arena demo` sur 10 process localhost — sortition (3 builders / 7 juges), commits, reveals, notes, SETTLED à h=55, paiements exacts (40 000 builders + 10 000 juges). (137 tests)
 
-## 8. Dashboard (`apps/dashboard`)
+## 8. Dashboard (`apps/dashboard`) ✅
 
-- [ ] Vue **Réseau** : canvas spatial (@xyflow/react), 10 agents autour du centre-chaîne, badges proposer/jailed/rôle, side panel composer « créer une task »
-- [ ] Vue **Manche** : cartes-reçus reliées (task → rendus → notes → règlement Yuma avec montants)
-- [ ] SSE du node de référence + poll léger `/status` par node
-- [ ] Création de task depuis le composer (POST, signature déléguée au node de référence)
+- [x] Vue **Réseau** : canvas spatial (@xyflow/react), agents en cercle autour du centre-chaîne (écran sombre, hauteur en gros), fils pointillés vers le centre, badges proposer (olive, fil animé) / jailed / rôle builder-juge de la manche active
+- [x] Vue **Manche** : cartes-reçus punaisées et inclinées (task → rendus → notes des juges en mini-barres → règlement Yuma), contenus scellés en ▓▓▓ avant reveal, tampons d'état (scellé/révélé/mismatch), barre de phases avec fenêtres
+- [x] SSE `/events` du node de référence + refetch de `/status` de chaque node (peers exposés en liste dans /status)
+- [x] Composer sponsor : POST `/sponsor/tasks` — le node de référence détient le wallet sponsor (seed dans sa config via `arena init`) et valide la tx sur un clone avant de l'accepter (erreurs en 400, pas de drop silencieux)
+- [x] Direction visuelle : « atelier papier » — fond grain, IBM Plex Mono (reçus) + Instrument Serif (titres), palette olive/ambre/violet des références, fonts bundlées (offline)
 
-**Sortie** : on voit une manche vivre en temps réel du brief au paiement.
+**Sortie** : ✅ pipeline de données vérifié en réel (composer → manche jouée par les agents → règlement affiché) ; build TypeScript strict OK. `bun run dev` dans `apps/dashboard` (ou `turbo run dev`) avec le réseau lancé pour la voir vivre. (138 tests)
 
 ## 9. README final
 

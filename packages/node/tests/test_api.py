@@ -70,6 +70,37 @@ def test_tx_invalide_rejetee_en_400() -> None:
     asyncio.run(scenario())
 
 
+def test_endpoint_sponsor_cree_une_task() -> None:
+    async def scenario():
+        # La sortition exige 10 agents eligibles, mais l'engine unique doit
+        # proposer ET atteindre le quorum seul : il detient >2/3 du stake.
+        from test_manche_e2e import AGENTS10
+
+        wallet = AGENTS10[0]
+        allocations = {w.address: 1_000_000 for w in AGENTS10} | {CLIENT.address: 1_000_000}
+        agents = {w.address: 1 for w in AGENTS10}
+        agents[wallet.address] = 1_000_000
+        state, genesis_block = make_genesis(allocations, agents)
+        engine = Engine(wallet, state, genesis_block, peers=[], transport=DirectTransport({}),
+                        block_time=0.0, round_timeout=10_000.0)
+        app = create_app(engine, sponsor_wallet=CLIENT)
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://node") as client:
+            bad = await client.post("/sponsor/tasks", json={"brief": "b", "prize": 1})
+            assert bad.status_code == 400  # MIN_PRICE rejete immediatement, pas au seal
+            assert "MIN_PRICE" in bad.json()["detail"]
+
+            ok = await client.post(
+                "/sponsor/tasks", json={"brief": "fais une todo-list", "prize": 50_000}
+            )
+            assert ok.status_code == 200
+            task_id = ok.json()["task"]
+            await engine.propose_if_leader()
+            assert task_id in engine.state.data["tasks"]
+
+    asyncio.run(scenario())
+
+
 def test_evenements_sse_publies() -> None:
     async def scenario():
         engine = single_node()

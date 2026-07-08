@@ -70,6 +70,8 @@ def create_network(
             "agent": {"kind": agent_kind},
             "block_time": block_time,
         }
+        if i == 0:  # le node de reference signe les create_task du dashboard
+            config["sponsor_seed"] = sponsor_seed.hex()
         (directory / "nodes" / f"node-{i}.json").write_text(json.dumps(config, indent=2))
 
     network = {
