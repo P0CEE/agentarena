@@ -1,8 +1,16 @@
 // Vue Manche : « follow the money » — la task, les rendus, les notes et le
 // règlement en cartes-reçus reliées par des fils.
 
-import { useEffect, useMemo, useState } from "react";
-import { Background, BackgroundVariant, ReactFlow, type Edge, type Node } from "@xyflow/react";
+import { useEffect, useState } from "react";
+import {
+  Background,
+  BackgroundVariant,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  type Edge,
+  type Node,
+} from "@xyflow/react";
 import { getTaskDetail, type TaskDetail } from "../api";
 import type { Network } from "../hooks";
 import {
@@ -27,7 +35,7 @@ function thread(id: string, source: string, target: string, color: string): Edge
     source,
     target,
     type: "default",
-    style: { stroke: color, strokeWidth: 1.3, strokeDasharray: "5 5", opacity: 0.5 },
+    style: { stroke: color, strokeWidth: 1.4, strokeDasharray: "5 5", opacity: 0.8 },
   };
 }
 
@@ -48,8 +56,13 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
     };
   }, [base, taskId, network.height]);
 
-  const { nodes, edges } = useMemo(() => {
-    if (detail === null) return { nodes: [] as Node[], edges: [] as Edge[] };
+  // Pattern controle de React Flow v12 : setNodes + onNodesChange, sinon les
+  // mesures des nodes se perdent a chaque refetch et ils restent invisibles.
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
+  useEffect(() => {
+    if (detail === null) return;
     const { task, submissions, scores } = detail;
     const names = network.names;
     const payouts = task.result?.payouts ?? null;
@@ -108,8 +121,9 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
       data: { task, names },
     });
 
-    return { nodes: flowNodes, edges: flowEdges };
-  }, [detail, network.names, network.height, taskId]);
+    setNodes(flowNodes);
+    setEdges(flowEdges);
+  }, [detail, network.names, network.height, taskId, setNodes, setEdges]);
 
   if (detail === null) {
     return (
@@ -123,12 +137,15 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
     <div className="relative h-full">
       <ReactFlow
         nodes={nodes}
+        onNodesChange={onNodesChange}
         edges={edges}
+        onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.12 }}
         minZoom={0.2}
         maxZoom={1.6}
+        nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
       >
