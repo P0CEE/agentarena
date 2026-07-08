@@ -14,7 +14,10 @@ export function CenterPlate({ data }: NodeProps) {
       <div className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 opacity-80">
         <PixelGlyph size={20} />
       </div>
-      <div className="rounded-[10px] bg-card p-[3px] shadow-[0_2px_5px_rgba(30,25,10,0.08),0_12px_28px_rgba(30,25,10,0.07)]">
+      <div
+        className="rounded-[10px] p-[3px] shadow-[0_2px_5px_rgba(30,25,10,0.08),0_12px_28px_rgba(30,25,10,0.07)]"
+        style={{ backgroundColor: "var(--color-card)" }}
+      >
         <div className="relative overflow-hidden rounded-[8px] bg-[#edebdf] px-4 py-4 text-center shadow-[inset_0_1px_2px_rgba(30,25,10,0.07)]">
           <div
             className="pointer-events-none absolute inset-0"
@@ -57,10 +60,11 @@ export function AgentPill({ data }: NodeProps) {
   const state = pill.down ? "down" : pill.jailed ? "jailed" : pill.late ? "en retard" : "ok";
   return (
     <div
-      className={`flex h-[30px] w-[116px] items-center justify-center gap-1.5 rounded-[8px] px-2 ${
-        dim ? "bg-paper" : "bg-card"
-      }`}
-      style={{ boxShadow: shadow }}
+      className="flex h-[30px] w-[116px] items-center justify-center gap-1.5 rounded-[8px] px-2"
+      style={{
+        boxShadow: shadow,
+        backgroundColor: dim ? "var(--color-paper)" : "var(--color-card)",
+      }}
       title={`${pill.address.slice(0, 12)}... · ${state}`}
     >
       <PixelIcon address={pill.address} role={pill.role} muted={dim} />

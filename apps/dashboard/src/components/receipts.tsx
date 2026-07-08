@@ -32,7 +32,10 @@ function Shell({
       className="receipt-drop relative"
       style={{ width, ["--tilt" as string]: `${tilt}deg`, transform: `rotate(${tilt}deg)` }}
     >
-      <div className="receipt-edge relative overflow-hidden rounded-t-[4px] bg-card px-3.5 pt-3.5 pb-5 shadow-[0_1px_2px_rgba(30,25,10,0.06),0_6px_18px_rgba(30,25,10,0.10)]">
+      <div
+        className="receipt-edge relative overflow-hidden rounded-t-[4px] px-3.5 pt-3.5 pb-5 shadow-[0_1px_2px_rgba(30,25,10,0.06),0_6px_18px_rgba(30,25,10,0.10)]"
+        style={{ backgroundColor: "var(--color-card)" }}
+      >
         <div className="receipt-texture pointer-events-none absolute inset-0" />
         <div className="relative">{children}</div>
       </div>

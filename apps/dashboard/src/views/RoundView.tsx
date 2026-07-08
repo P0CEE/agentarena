@@ -164,7 +164,10 @@ function PhaseBar({ task, height }: { task: TaskDetail["task"]; height: number }
     { label: "reveals notes", until: task.reveal_score_until },
   ];
   return (
-    <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-[8px] bg-card/90 px-3 py-2 shadow-[0_1px_4px_rgba(30,25,10,0.10)] backdrop-blur">
+    <div
+      className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-[8px] px-3 py-2 shadow-[0_1px_4px_rgba(30,25,10,0.10)]"
+      style={{ backgroundColor: "var(--color-card)" }}
+    >
       <span className="text-[9px] font-semibold uppercase tracking-[0.12em]">
         {task.state}
       </span>

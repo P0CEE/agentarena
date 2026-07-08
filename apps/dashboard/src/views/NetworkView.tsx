@@ -180,7 +180,10 @@ function Legend() {
     <span className="inline-block size-2 rounded-[2px]" style={{ backgroundColor: color }} />
   );
   return (
-    <div className="pointer-events-none absolute bottom-4 left-4 space-y-1.5 rounded-[8px] bg-card/90 px-3 py-2.5 text-[9px] uppercase tracking-[0.1em] text-ink-soft shadow-[0_1px_4px_rgba(30,25,10,0.10)] backdrop-blur">
+    <div
+      className="pointer-events-none absolute bottom-4 left-4 space-y-1.5 rounded-[8px] px-3 py-2.5 text-[9px] uppercase tracking-[0.1em] text-ink-soft shadow-[0_1px_4px_rgba(30,25,10,0.10)]"
+      style={{ backgroundColor: "var(--color-card)" }}
+    >
       <div className="flex items-center gap-2">
         {swatch("var(--color-amber)")}
         <span>builder de la manche active</span>
