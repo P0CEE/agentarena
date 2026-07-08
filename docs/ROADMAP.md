@@ -46,15 +46,18 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : une manche complète en mémoire, du create_task au règlement, rejouable 2x identique + replay des blocs sur un node frais. ✅ (94 tests)
 
-## 5. Consensus BFT + nodes (`packages/node`)
+## 5. Consensus BFT + nodes (`packages/node`) ✅
 
-- [ ] `consensus.py` — proposer round-robin pondéré stake, votes, QC > 2/3 du stake, pacemaker (compteur logique)
-- [ ] Node FastAPI : POST /tx /vote /block, GET /chain /status /tasks, gossip idempotent
-- [ ] Flux SSE (nouveau bloc, transitions de manche, règlements)
-- [ ] Catch-up d'un node en retard (validation de chaque bloc)
-- [ ] Block time 2 s, chaîne en mémoire (ADR-0002)
+- [x] `consensus.py` (chain) — proposer round-robin pondéré stake (algo Tendermint), votes signés, QC strictement > 2/3 du stake (2/3 pile rejeté), pacemaker par quorum de timeouts (compteur logique)
+- [x] Vérificateur de double-sign + slash 7% + jail court SANS grâce (faute de sûreté), idempotent
+- [x] Genesis avec agents pré-enregistrés (le set de validateurs initial — résout l'œuf-et-la-poule du bloc 1)
+- [x] `packages/node` : Engine asyncio avec transport injectable (HTTP en prod, direct en tests), mempool revalidé au seal, gossip idempotent
+- [x] Serveur FastAPI : POST /tx /consensus/*, GET /status /blocks /chain /tasks /tasks/{id} /agents, CORS pour le dashboard
+- [x] Flux SSE /events (nouveau bloc, transitions de manche)
+- [x] Catch-up : validation de chaque bloc ET de son QC (un peer menteur est abandonné)
+- [x] Limite assumée (README) : un seul tour de vote, pas les 3 phases HotStuff — sûr tant qu'un node honnête vote une fois par (hauteur, round), le double-vote étant slashable
 
-**Sortie** : 4 nodes localhost finalisent des blocs ; 1 node coupé sur 4 → ça continue ; 2 coupés → ça s'arrête (comportement BFT correct).
+**Sortie** : ✅ testé en transport direct (1 mort sur 4 → timeout, round suivant, ça continue ; 2 morts → halt, la sûreté avant la liveness ; catch-up exact) + smoke test réel : 4 process uvicorn localhost finalisent en synchro (h=16 à 6 s, h=24 à 9 s, block_time 0.3 s). (105 tests chain + 10 node)
 
 ## 6. Agents Mistral (`packages/agents`)
 

@@ -28,20 +28,30 @@ class State:
         self.ctx_prev_hash: str | None = None  # hash du dernier bloc finalise
 
     @classmethod
-    def from_allocations(cls, allocations: dict[str, int]) -> "State":
-        """State initial du genesis : des soldes, les paramètres, aucun agent."""
+    def from_allocations(
+        cls, allocations: dict[str, int], agents: dict[str, int] | None = None
+    ) -> "State":
+        """State initial du genesis : des soldes, les paramètres, et les agents
+        pré-enregistrés (le set de validateurs initial, stakes égaux au genesis)."""
         accounts = {
             addr: {"balance": amount, "nonce": 0} for addr, amount in sorted(allocations.items())
         }
+        agents = agents or {}
         return cls(
             {
                 "accounts": accounts,
-                "agents": {},
-                "stakes": {},
+                "agents": {
+                    addr: {"jailed_until": 0, "offenses": 0, "last_offense": 0}
+                    for addr in sorted(agents)
+                },
+                "stakes": {
+                    addr: {"free": stake, "locked": 0} for addr, stake in sorted(agents.items())
+                },
                 "tasks": {},
                 "submissions": {},
                 "scores": {},
                 "bonds": {},
+                "double_signed": {},
                 "treasury": 0,
                 "params": params_hash(),
                 "height": 0,

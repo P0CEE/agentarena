@@ -39,6 +39,7 @@ SLASH_DOUBLESIGN_PCT = 7
 BOUNTY_PCT = 15  # part du montant slashe versee au denonciateur, le reste au treasury
 JAIL_BASE = 5  # blocs ; grace au 1er incident puis base * 2^(offenses - 2)
 OFFENSE_FORGET_WINDOW = 1_000  # fenetre d'oubli des offenses, en blocs
+DOUBLESIGN_JAIL_BLOCKS = 20  # jail court SANS grace : le double-sign est une faute de surete
 
 # --- bornes anti-bloat du state ---
 MAX_TASK_ID_LEN = 64
@@ -75,6 +76,7 @@ def params_hash() -> str:
             "BOUNTY_PCT": BOUNTY_PCT,
             "JAIL_BASE": JAIL_BASE,
             "OFFENSE_FORGET_WINDOW": OFFENSE_FORGET_WINDOW,
+            "DOUBLESIGN_JAIL_BLOCKS": DOUBLESIGN_JAIL_BLOCKS,
             "MAX_TASK_ID_LEN": MAX_TASK_ID_LEN,
             "MAX_BRIEF_LEN": MAX_BRIEF_LEN,
             "MAX_CONTENT_LEN": MAX_CONTENT_LEN,

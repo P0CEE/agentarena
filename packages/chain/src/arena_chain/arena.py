@@ -14,10 +14,12 @@ Fenêtres (bornes incluses, séquencement strict) :
 """
 
 from arena_chain.canonical import tagged_hash
+from arena_chain.consensus import check_double_sign
 from arena_chain.errors import InvalidTx
 from arena_chain.params import (
     BUILD_WINDOW,
     COMMIT_SCORE_WINDOW,
+    DOUBLESIGN_JAIL_BLOCKS,
     JUDGE_RESERVE_PCT,
     K_BUILDERS,
     MAX_BRIEF_LEN,
@@ -30,6 +32,7 @@ from arena_chain.params import (
     SALT_MAX_LEN,
     SALT_MIN_LEN,
     SCALE,
+    SLASH_DOUBLESIGN_PCT,
     SLASH_PLAGIARISM_PCT,
 )
 from arena_chain.slashing import jail, slash
@@ -237,16 +240,24 @@ def _apply_reveal_scores(state: State, tx: dict) -> None:
 
 
 def _apply_slash_proof(state: State, tx: dict) -> None:
+    """Preuves de faute, revérifiées déterministiquement — pas d'accusation gratuite."""
+    kind = tx["payload"].get("kind")
+    if kind == "plagiarism":
+        _slash_plagiarism(state, tx)
+    elif kind == "double_sign":
+        _slash_double_sign(state, tx)
+    else:
+        raise InvalidTx(f"kind de preuve inconnu: {kind}")
+
+
+def _slash_plagiarism(state: State, tx: dict) -> None:
     """Plagiat : contenus révélés identiques, le plus tardif est fautif.
 
     La chronologie on-chain (hauteur du commit) départage ; à hauteur égale on
-    ne peut pas prouver qui a copié, la preuve est rejetée. Le double-sign BFT
-    arrive avec le consensus (étape 5).
+    ne peut pas prouver qui a copié, la preuve est rejetée.
     """
     _height(state)
     payload = tx["payload"]
-    if payload.get("kind") != "plagiarism":
-        raise InvalidTx(f"kind de preuve inconnu: {payload.get('kind')}")
     task_id, task = _task(state, payload)
     accused = _require_str(payload, "accused", 64)
     earlier = _require_str(payload, "earlier", 64)
@@ -269,6 +280,26 @@ def _apply_slash_proof(state: State, tx: dict) -> None:
         raise InvalidTx("chronologie non prouvante (l'accuse n'est pas le plus tardif)")
     slash(state, accused, SLASH_PLAGIARISM_PCT, reporter=tx["sender"])
     task["slashed"].append(accused)
+
+
+def _slash_double_sign(state: State, tx: dict) -> None:
+    """Équivocation BFT : deux votes signés pour deux blocs à la même (hauteur, round).
+
+    Slash court (7%) + jail SANS grâce : c'est une faute de sûreté, pas de
+    liveness. Idempotent par (voter, hauteur, round).
+    """
+    height = _height(state)
+    payload = tx["payload"]
+    voter = check_double_sign(payload.get("vote_a"), payload.get("vote_b"))
+    if voter not in state.data["agents"]:
+        raise InvalidTx("le double-signeur n'est pas un agent")
+    key = f"{voter}|{payload['vote_a']['height']}|{payload['vote_a']['round']}"
+    if key in state.data["double_signed"]:
+        raise InvalidTx("equivocation deja slashee")
+    slash(state, voter, SLASH_DOUBLESIGN_PCT, reporter=tx["sender"])
+    agent = state.data["agents"][voter]
+    agent["jailed_until"] = max(agent["jailed_until"], height + DOUBLESIGN_JAIL_BLOCKS)
+    state.data["double_signed"][key] = height
 
 
 # --- transitions automatiques de fin de bloc ---
