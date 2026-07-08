@@ -1,5 +1,11 @@
 """Coeur de la chaine AgentArena : tout ce qui touche au state_root vit ici."""
 
+from arena_chain.arena import (
+    eligible_agents,
+    revealed_builders,
+    scores_commit,
+    solution_commit,
+)
 from arena_chain.block import block_hash, make_block, make_header, tx_root, verify_block
 from arena_chain.canonical import canonical, tagged_hash
 from arena_chain.errors import ChainError, InvalidBlock, InvalidTx
@@ -23,12 +29,16 @@ __all__ = [
     "apply_block",
     "block_hash",
     "canonical",
+    "eligible_agents",
     "make_block",
     "make_genesis",
     "make_header",
     "make_tx",
+    "revealed_builders",
+    "scores_commit",
     "seal_block",
     "select_builders",
+    "solution_commit",
     "sortition_seed",
     "split",
     "tagged_hash",

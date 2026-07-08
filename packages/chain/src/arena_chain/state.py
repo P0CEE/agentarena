@@ -3,6 +3,10 @@
 Le state est un unique dict imbriqué à clés str : son root est le hash canonique
 de ce dict, identique sur tous les nodes. Règle des handlers : valider AVANT de
 muter (une tx rejetée ne laisse aucun effet de bord).
+
+Les handlers de manche (arena.py) et les hooks de fin de bloc s'enregistrent
+dans HANDLERS et BLOCK_END_HOOKS ; l'application d'un bloc est :
+begin_block -> txs en ordre canonique -> hooks -> height -> root.
 """
 
 import copy
@@ -11,7 +15,7 @@ from collections.abc import Callable
 from arena_chain.block import block_hash, make_block, make_header, tx_root, verify_block
 from arena_chain.canonical import tagged_hash
 from arena_chain.errors import InvalidBlock, InvalidTx
-from arena_chain.params import MIN_STAKE
+from arena_chain.params import MIN_STAKE, params_hash
 from arena_chain.tx import txid, verify_tx
 
 STATE_TAG = "agentarena/state/v1"
@@ -20,14 +24,29 @@ STATE_TAG = "agentarena/state/v1"
 class State:
     def __init__(self, data: dict) -> None:
         self.data = data
+        self.ctx_height: int | None = None  # hauteur du bloc en cours d'application
+        self.ctx_prev_hash: str | None = None  # hash du dernier bloc finalise
 
     @classmethod
     def from_allocations(cls, allocations: dict[str, int]) -> "State":
-        """State initial du genesis : uniquement des soldes, aucun agent."""
+        """State initial du genesis : des soldes, les paramètres, aucun agent."""
         accounts = {
             addr: {"balance": amount, "nonce": 0} for addr, amount in sorted(allocations.items())
         }
-        return cls({"accounts": accounts, "agents": {}, "stakes": {}, "height": 0})
+        return cls(
+            {
+                "accounts": accounts,
+                "agents": {},
+                "stakes": {},
+                "tasks": {},
+                "submissions": {},
+                "scores": {},
+                "bonds": {},
+                "treasury": 0,
+                "params": params_hash(),
+                "height": 0,
+            }
+        )
 
     def clone(self) -> "State":
         return State(copy.deepcopy(self.data))
@@ -38,6 +57,10 @@ class State:
     @property
     def height(self) -> int:
         return self.data["height"]
+
+    def begin_block(self, height: int, prev_hash: str) -> None:
+        self.ctx_height = height
+        self.ctx_prev_hash = prev_hash
 
     def account(self, addr: str) -> dict:
         return self.data["accounts"].setdefault(addr, {"balance": 0, "nonce": 0})
@@ -99,7 +122,7 @@ def _apply_register_agent(state: State, tx: dict) -> None:
         raise InvalidTx("solde insuffisant pour le stake")
     state.debit(sender, stake)
     state.data["stakes"][sender] = {"free": stake, "locked": 0}
-    state.data["agents"][sender] = {"jailed_until": 0, "offenses": 0}
+    state.data["agents"][sender] = {"jailed_until": 0, "offenses": 0, "last_offense": 0}
 
 
 Handler = Callable[[State, dict], None]
@@ -108,6 +131,19 @@ HANDLERS: dict[str, Handler] = {
     "transfer": _apply_transfer,
     "register_agent": _apply_register_agent,
 }
+
+# Hooks executes en fin de bloc (transitions de manche, jails, reglements).
+# Enregistres par arena.py ; rejoues a l'identique par tous les nodes.
+BLOCK_END_HOOKS: list[Callable[[State], None]] = []
+
+
+def _run_block(state: State, height: int, prev_hash: str, ordered_txs: list[dict]) -> list[str]:
+    state.begin_block(height, prev_hash)
+    ids = [state.apply_tx(tx) for tx in ordered_txs]
+    for hook in BLOCK_END_HOOKS:
+        hook(state)
+    state.data["height"] = height
+    return ids
 
 
 def seal_block(
@@ -120,20 +156,17 @@ def seal_block(
     """
     work = state.clone()
     ordered = sorted(txs, key=txid)
-    ids = [work.apply_tx(tx) for tx in ordered]
+    prev_hash = block_hash(prev_header)
     height = prev_header["height"] + 1
-    work.data["height"] = height
-    header = make_header(
-        height, block_hash(prev_header), proposer, round_, tx_root(ids), work.root()
-    )
+    ids = _run_block(work, height, prev_hash, ordered)
+    header = make_header(height, prev_hash, proposer, round_, tx_root(ids), work.root())
     return work, make_block(header, ordered)
 
 
 def apply_block(state: State, prev_header: dict, block: dict) -> None:
     """Côté validateur : vérifie puis applique un bloc, state_root compris."""
     verify_block(block, prev_header)
-    for tx in block["txs"]:
-        state.apply_tx(tx)
-    state.data["height"] = block["header"]["height"]
-    if state.root() != block["header"]["state_root"]:
+    header = block["header"]
+    _run_block(state, header["height"], header["prev_hash"], block["txs"])
+    if state.root() != header["state_root"]:
         raise InvalidBlock("state_root divergent apres application (bloc ou state corrompu)")

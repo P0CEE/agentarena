@@ -37,7 +37,7 @@ Le projet libre (brief + prix) soumis par un Sponsor, dont le prix est verrouill
 _Avoid_ : job, mission, bounty
 
 **Manche** :
-Le cycle de vie complet d'une Task : OPEN → SCORING → CONSENSUS → SETTLED.
+Le cycle de vie complet d'une Task : OPEN → SCORING → SETTLED. Le Règlement se déclenche automatiquement à la clôture de la dernière Fenêtre, sans transaction dédiée.
 _Avoid_ : round (réservé au consensus BFT), partie
 
 **Sponsor** :
@@ -69,6 +69,10 @@ _Avoid_ : deadline, délai
 
 **Escrow** :
 Le verrouillage on-chain du prix d'une Task (ou d'une caution) jusqu'à son règlement ou son remboursement.
+
+**Règlement** :
+La distribution automatique et déterministe du prix d'une Task : réserve juges d'abord, puis partage entre Builders selon l'Incentive et entre Juges selon les Dividends. Une Task sans rendu ou sans note est remboursée au Sponsor.
+_Avoid_ : settle, paiement
 
 ## Scoring Yuma
 
@@ -109,3 +113,9 @@ L'absence d'une transaction attendue d'un agent désigné (rendu, reveal, note) 
 
 **Équivocation** :
 Deux signatures valides d'un même agent pour la même hauteur/phase avec des contenus différents ; faute prouvable menant au Slash.
+
+**Treasury** :
+Le puits on-chain qui reçoit la part des montants slashés non reversée au dénonciateur. Rien n'en sort.
+
+**Offense** :
+Un manquement de liveness enregistré contre un agent. La première dans la fenêtre d'oubli vaut grâce ; les suivantes déclenchent un Jail de durée doublante.

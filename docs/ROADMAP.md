@@ -35,16 +35,16 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : golden tests verts, deux instances calculent la même partition et le même règlement. ✅ (72 tests)
 
-## 4. Machine à manche (`arena.py`)
+## 4. Machine à manche (`arena.py`) ✅
 
-- [ ] Machine à états OPEN → SCORING → CONSENSUS → SETTLED, transitions dans `on_block_end`
-- [ ] Fenêtres en hauteurs de bloc (BUILD=20, REVEAL=10, COMMIT_SCORE=10, REVEAL_SCORE=10)
-- [ ] Commit-reveal : sel ≥128 bits + domain separator, commit unique, reveals atomiques, états REVEAL_OK / MISMATCH / NO_SHOW
-- [ ] Escrow du prix + réserve juges 20% + timeout → refund
-- [ ] Sanctions noyau calibré : slash plagiat 40% (+ chronologie), double-sign 7%, jail escaladant avec grâce, clipping (voir ADR-0004)
-- [ ] `params.py` unique, hash fixé dans le genesis
+- [x] Machine à états OPEN → SCORING → SETTLED, transitions dans `on_block_end` (déviation assumée : le règlement est automatique à la clôture de la dernière fenêtre — pas de tx de crank ni d'état d'attente CONSENSUS)
+- [x] Fenêtres en hauteurs de bloc (BUILD=20, REVEAL=10, COMMIT_SCORE=10, REVEAL_SCORE=10)
+- [x] Commit-reveal : sel ≥128 bits + domain separator liant task et auteur (un commit ne se copie pas), commit unique, états COMMITTED / REVEAL_OK / MISMATCH
+- [x] Escrow du prix + réserve juges 20% + toute manche vide remboursée au sponsor (jamais d'escrow bloqué)
+- [x] Sanctions noyau calibré : slash plagiat 40% + chronologie on-chain, bounty 15% au dénonciateur (reste au treasury), jail escaladant avec grâce et fenêtre d'oubli, clipping (ADR-0004). Double-sign 7% : le vérificateur arrive avec le format des votes BFT (étape 5)
+- [x] `params.py` unique, `params_hash()` écrit dans le state du genesis (des params différents ⇒ divergence au bloc 0)
 
-**Sortie** : une manche complète en mémoire avec agents stubs, du create_task au règlement, rejouable 2x identique.
+**Sortie** : une manche complète en mémoire, du create_task au règlement, rejouable 2x identique + replay des blocs sur un node frais. ✅ (94 tests)
 
 ## 5. Consensus BFT + nodes (`packages/node`)
 
