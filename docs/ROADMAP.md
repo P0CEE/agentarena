@@ -1,0 +1,96 @@
+# Roadmap
+
+Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on ne passe pas à la suivante tant qu'il n'est pas vert. L'ordre n'est pas négociable sur un point : Yuma et la sortition (étape 3) avant le réseau, parce que ce sont eux qui portent les golden tests de déterminisme.
+
+## 1. Squelette du monorepo ✅
+
+- [x] Racine Turborepo + Bun (workspaces `apps/*`, `packages/*`)
+- [x] Workspace uv avec 4 packages Python : `chain`, `node`, `agents`, `cli`
+- [x] Dashboard Vite + React + Tailwind vide dans `apps/dashboard`
+- [x] `package.json` par package Python déléguant à `uv run` (pytest, ruff)
+
+**Sortie** : `bun run test` (turbo) exécute les tests de tous les packages et passe. ✅
+
+## 2. Fondations chaîne (`packages/chain`)
+
+- [ ] `canonical.py` — sérialisation canonique unique (sort_keys, ascii, entiers only) + test de déterminisme
+- [ ] `wallet.py` — Ed25519 (PyNaCl), adresse = sha256(pubkey) tronqué
+- [ ] `tx.py` — tx signée, `txid` sur les signing bytes, signature jamais dans le hash
+- [ ] `block.py` — header (height, prev_hash, proposer, round, tx_root, state_root), hash sans signatures
+- [ ] `state.py` — account-based `{balance, nonce}` + stake **réellement débité** (correctif audit), `MIN_PRICE` (correctif audit), faucet plafonné (correctif audit)
+
+**Sortie** : sign/verify OK, txid stable, altérer un bloc casse la chaîne, apply_block déterministe.
+
+## 3. Moteur économique
+
+- [ ] `yuma.py` — fixed-point int (SCALE=1e9), médiane pondérée stake, clipping, rank, incentive, bonds EMA, dividends
+- [ ] Golden test obligatoire : `C=[0.6,0.3,0.1]`, `I=[0.566,0.313,0.121]`, `D=[0.602,0.325,0.072]` (V3 le tricheur clippé), rejouable 1000x = hash identique
+- [ ] `split.py` — largest remainder, invariant `sum(payouts) == prize` exact
+- [ ] `sortition.py` — partition Builders/Juges déterministe, seed = hash du dernier bloc finalisé, sponsor exclu, builder ≠ juge
+- [ ] Cas dégénérés couverts : `sumR==0`, 1 juge, égalités de médiane (tie-break canonique par agent_id)
+
+**Sortie** : golden tests verts, deux instances calculent la même partition et le même règlement.
+
+## 4. Machine à manche (`arena.py`)
+
+- [ ] Machine à états OPEN → SCORING → CONSENSUS → SETTLED, transitions dans `on_block_end`
+- [ ] Fenêtres en hauteurs de bloc (BUILD=20, REVEAL=10, COMMIT_SCORE=10, REVEAL_SCORE=10)
+- [ ] Commit-reveal : sel ≥128 bits + domain separator, commit unique, reveals atomiques, états REVEAL_OK / MISMATCH / NO_SHOW
+- [ ] Escrow du prix + réserve juges 20% + timeout → refund
+- [ ] Sanctions noyau calibré : slash plagiat 40% (+ chronologie), double-sign 7%, jail escaladant avec grâce, clipping (voir ADR-0004)
+- [ ] `params.py` unique, hash fixé dans le genesis
+
+**Sortie** : une manche complète en mémoire avec agents stubs, du create_task au règlement, rejouable 2x identique.
+
+## 5. Consensus BFT + nodes (`packages/node`)
+
+- [ ] `consensus.py` — proposer round-robin pondéré stake, votes, QC > 2/3 du stake, pacemaker (compteur logique)
+- [ ] Node FastAPI : POST /tx /vote /block, GET /chain /status /tasks, gossip idempotent
+- [ ] Flux SSE (nouveau bloc, transitions de manche, règlements)
+- [ ] Catch-up d'un node en retard (validation de chaque bloc)
+- [ ] Block time 2 s, chaîne en mémoire (ADR-0002)
+
+**Sortie** : 4 nodes localhost finalisent des blocs ; 1 node coupé sur 4 → ça continue ; 2 coupés → ça s'arrête (comportement BFT correct).
+
+## 6. Agents Mistral (`packages/agents`)
+
+- [ ] Interface `Agent` (build, judge) + stub déterministe pour les tests (ADR-0001)
+- [ ] Client Mistral (clé unique `MISTRAL_API_KEY`, modèle éco), prompts builder et juge
+- [ ] Timeout/erreur Mistral → no-show → jail (avec grâce)
+
+**Sortie** : une manche avec vrais appels Mistral aboutit ; les tests passent sans réseau (stub).
+
+## 7. CLI (`packages/cli`)
+
+- [ ] `arena init` — genesis (10 agents, stakes égaux), wallets, wallet sponsor financé
+- [ ] `arena start` / `arena stop` — lance/arrête les process nodes
+- [ ] `arena status` — hauteur, proposer, état des nodes
+- [ ] `arena task create` — soumet une task signée par le sponsor
+- [ ] `arena demo` — une manche scriptée de bout en bout
+
+**Sortie** : `arena init && arena start && arena demo` fonctionne depuis un clone frais.
+
+## 8. Dashboard (`apps/dashboard`)
+
+- [ ] Vue **Réseau** : canvas spatial (@xyflow/react), 10 agents autour du centre-chaîne, badges proposer/jailed/rôle, side panel composer « créer une task »
+- [ ] Vue **Manche** : cartes-reçus reliées (task → rendus → notes → règlement Yuma avec montants)
+- [ ] SSE du node de référence + poll léger `/status` par node
+- [ ] Création de task depuis le composer (POST, signature déléguée au node de référence)
+
+**Sortie** : on voit une manche vivre en temps réel du brief au paiement.
+
+## 9. README final
+
+- [ ] Architecture (2 couches : off-chain LLM / on-chain déterministe) avec schéma
+- [ ] Mode d'emploi complet (installation → démo)
+- [ ] Limites assumées : <16 agents, capture 51%, free-riding des juges (pas de honesty-probe), pas de persistance
+
+**Sortie** : quelqu'un qui clone le repo comprend et fait tourner le projet sans aide.
+
+## Hors périmètre (coupé volontairement)
+
+- DISPUTE / challenger bond
+- Honesty-probe et dividend-penalty (ADR-0004)
+- Persistance disque (ADR-0002)
+- Multi-provider LLM (ADR-0001)
+- Mode hybride à vérité objective

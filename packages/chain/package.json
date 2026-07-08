@@ -1,0 +1,7 @@
+{
+  "name": "@agentarena/chain",
+  "private": true,
+  "scripts": {
+    "test": "uv run pytest tests"
+  }
+}

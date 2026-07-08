@@ -1,0 +1,7 @@
+{
+  "name": "@agentarena/node",
+  "private": true,
+  "scripts": {
+    "test": "uv run pytest tests"
+  }
+}
