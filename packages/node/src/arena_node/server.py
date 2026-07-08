@@ -109,6 +109,10 @@ def create_app(engine: Engine, run_engine: bool = False, agent_runner=None) -> F
             },
         }
 
+    @app.get("/accounts/{addr}")
+    async def account(addr: str) -> dict:
+        return dict(engine.state.data["accounts"].get(addr, {"balance": 0, "nonce": 0}))
+
     @app.get("/agents")
     async def agents() -> dict:
         data = engine.state.data

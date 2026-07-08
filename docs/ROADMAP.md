@@ -69,15 +69,15 @@ Les étapes dans l'ordre. Chaque étape a un critère de sortie testable — on 
 
 **Sortie** : ✅ e2e : 10 nodes + 10 runners jouent une manche entière en totale autonomie (3 rendus, 7 vecteurs de notes, règlement Yuma, state_root identique partout). Les tests passent sans réseau (stub). ⏳ La manche « vrais appels Mistral » attend une `MISTRAL_API_KEY` dans `.env` (code prêt, smoke à l'étape 7 via le CLI). (105+14+12 tests)
 
-## 7. CLI (`packages/cli`)
+## 7. CLI (`packages/cli`) ✅
 
-- [ ] `arena init` — genesis (10 agents, stakes égaux), wallets, wallet sponsor financé
-- [ ] `arena start` / `arena stop` — lance/arrête les process nodes
-- [ ] `arena status` — hauteur, proposer, état des nodes
-- [ ] `arena task create` — soumet une task signée par le sponsor
-- [ ] `arena demo` — une manche scriptée de bout en bout
+- [x] `arena init` — genesis (10 agents pré-enregistrés, stakes égaux), wallets, sponsor financé ; `--agent auto|stub|mistral` (auto = mistral si `MISTRAL_API_KEY` trouvée dans `.env`), `--nodes`, `--block-time`, `--base-port`, `--force`
+- [x] `arena start` / `arena stop` — process détachés (`python -m arena_node`), pids + logs dans `.arena/`, redémarrage idempotent
+- [x] `arena status` — table hauteur/round/mempool/proposer par node, tolère les nodes down
+- [x] `arena task create` — tx signée par le sponsor (nonce lu via `GET /accounts/{addr}`), `--watch` optionnel
+- [x] `arena demo` — manche de bout en bout avec suivi live (état, rendus, notes, hauteur) et affichage du règlement Yuma
 
-**Sortie** : `arena init && arena start && arena demo` fonctionne depuis un clone frais.
+**Sortie** : ✅ vérifié en réel : `arena init && arena start && arena demo` sur 10 process localhost — sortition (3 builders / 7 juges), commits, reveals, notes, SETTLED à h=55, paiements exacts (40 000 builders + 10 000 juges). (137 tests)
 
 ## 8. Dashboard (`apps/dashboard`)
 
