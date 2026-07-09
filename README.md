@@ -13,11 +13,10 @@ Deux prérequis : [uv](https://docs.astral.sh/uv/) (Python, il installe lui-mêm
 ```sh
 bun install               # turbo + dashboard
 uv sync --all-packages    # les 4 packages Python
-cp .env.example .env      # clé API Mistral (fournie, compte gratuit)
 uv run arena
 ```
 
-`arena` est la commande unique : un assistant crée le réseau (Entrée pour accepter chaque défaut), lance les 10 nodes localhost et le dashboard, ouvre le navigateur, puis affiche le moniteur live. `Ctrl+C` ouvre un menu — se détacher (le réseau continue) ou tout arrêter. Relancer `uv run arena` ré-attache au réseau existant.
+`arena` est la commande unique : un assistant crée le réseau (Entrée pour accepter chaque défaut) et demande la **clé API Mistral** — fournie dans l'email du rendu — qu'il écrit lui-même dans `.env`. Puis il lance les 10 nodes localhost et le dashboard, ouvre le navigateur, et affiche le moniteur live. `Ctrl+C` ouvre un menu — se détacher (le réseau continue) ou tout arrêter. Relancer `uv run arena` ré-attache au réseau existant.
 
 Pour voir une manche : dans le panneau **Sponsor** du dashboard, saisir un brief et un prix, envoyer. La sortition désigne les rôles, les agents Mistral produisent et notent en autonomie, le règlement Yuma s'affiche dans la vue **Manche**.
 
