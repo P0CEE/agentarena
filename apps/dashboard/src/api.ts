@@ -55,6 +55,38 @@ export type TaskDetail = {
   scores: Record<string, ScoreRecord>;
 };
 
+export type Tx = {
+  sender: string;
+  pubkey: string;
+  nonce: number;
+  payload: { type: string; to?: string; amount?: number; task?: string };
+  signature: string;
+};
+
+export type BlockHeader = {
+  height: number;
+  prev_hash: string;
+  proposer: string;
+  round: number;
+  tx_root: string;
+  state_root: string;
+  timestamp: number;
+};
+
+export type BlockEntry = {
+  block: { header: BlockHeader; txs: Tx[] };
+  qc: Record<string, unknown>;
+  hash: string;
+  txids: string[];
+};
+
+export type MineResult = {
+  block: { header: BlockHeader; txs: Tx[] };
+  hash: string;
+  txids: string[];
+  consensus: { proposer: string; round: number; voters: string[] };
+};
+
 export type AgentInfo = {
   jailed_until: number;
   offenses: number;
@@ -80,6 +112,9 @@ export const getTaskDetail = (base: string, taskId: string) =>
 export const getAgents = (base: string) =>
   get<{ agents: Record<string, AgentInfo> }>(`${base}/agents`).then((data) => data.agents);
 
+export const getBlocks = (base: string, from: number) =>
+  get<{ blocks: BlockEntry[] }>(`${base}/blocks?from=${from}`).then((data) => data.blocks);
+
 export async function createTask(
   base: string,
   brief: string,
@@ -93,6 +128,29 @@ export async function createTask(
   const body = await response.json();
   if (!response.ok) throw new Error(body.detail ?? "tx rejetee");
   return body.task;
+}
+
+export async function postTransfer(
+  base: string,
+  recipient: string,
+  amount: number,
+): Promise<string> {
+  const response = await fetch(`${base}/transactions/new`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recipient, amount }),
+  });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.detail ?? "tx rejetee");
+  return body.txid;
+}
+
+// Semantique BFT : attend la finalisation du prochain bloc (pas de PoW force).
+export async function mine(base: string): Promise<MineResult> {
+  const response = await fetch(`${base}/mine`);
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.detail ?? "mine en echec");
+  return body;
 }
 
 export function portOf(url: string): number {

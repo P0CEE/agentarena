@@ -10,6 +10,7 @@ begin_block -> txs en ordre canonique -> hooks -> height -> root.
 """
 
 import copy
+import time
 from collections.abc import Callable
 
 from arena_chain.block import block_hash, make_block, make_header, tx_root, verify_block
@@ -157,19 +158,30 @@ def _run_block(state: State, height: int, prev_hash: str, ordered_txs: list[dict
 
 
 def seal_block(
-    state: State, prev_header: dict, txs: list[dict], proposer: str, round_: int
+    state: State,
+    prev_header: dict,
+    txs: list[dict],
+    proposer: str,
+    round_: int,
+    timestamp: int | None = None,
 ) -> tuple[State, dict]:
     """Côté proposer : applique les tx sur un clone et scelle le bloc.
 
     Le state d'origine n'est pas modifié ; le nouveau state et le bloc sont
-    retournés ensemble.
+    retournés ensemble. Sans timestamp explicite, le proposer écrit son horloge
+    (ms epoch), bornée à prev+1 : la monotonie stricte exigée par verify_block
+    tient même avec des horloges désynchronisées entre proposers.
     """
     work = state.clone()
     ordered = sorted(txs, key=txid)
     prev_hash = block_hash(prev_header)
     height = prev_header["height"] + 1
+    if timestamp is None:
+        timestamp = max(int(time.time() * 1000), prev_header["timestamp"] + 1)
     ids = _run_block(work, height, prev_hash, ordered)
-    header = make_header(height, prev_hash, proposer, round_, tx_root(ids), work.root())
+    header = make_header(
+        height, prev_hash, proposer, round_, tx_root(ids), work.root(), timestamp
+    )
     return work, make_block(header, ordered)
 
 

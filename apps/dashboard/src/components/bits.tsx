@@ -19,7 +19,7 @@ export function Stamp({ value }: { value: string }) {
   const color = STAMP_COLORS[value] ?? "var(--color-ink-soft)";
   return (
     <span
-      className="inline-block -rotate-6 border-[1.5px] px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.14em]"
+      className="inline-block -rotate-6 border-[1.5px] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.14em]"
       style={{ color, borderColor: color }}
     >
       {STAMP_LABELS[value] ?? value}
@@ -62,10 +62,12 @@ export function PixelIcon({
   address,
   role,
   muted = false,
+  size = 14,
 }: {
   address: string;
   role: "builder" | "juge" | null;
   muted?: boolean;
+  size?: number;
 }) {
   const palette = ICON_PALETTES[role ?? "none"];
   const hex = address || "0";
@@ -82,8 +84,8 @@ export function PixelIcon({
   }
   return (
     <svg
-      width={14}
-      height={14}
+      width={size}
+      height={size}
       viewBox="0 0 5 5"
       style={{ imageRendering: "pixelated", opacity: muted ? 0.45 : 1 }}
       className="shrink-0"
@@ -105,7 +107,7 @@ export function RoleChip({ role }: { role: "builder" | "juge" | "sponsor" }) {
         : "var(--color-olive)";
   return (
     <span
-      className="rounded-[3px] px-1 py-px text-[9px] font-semibold uppercase tracking-[0.1em] text-white"
+      className="rounded-[3px] px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.1em] text-white"
       style={{ backgroundColor: color }}
     >
       {role}

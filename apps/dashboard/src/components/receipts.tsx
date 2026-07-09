@@ -33,7 +33,7 @@ function Shell({
       style={{ width, ["--tilt" as string]: `${tilt}deg`, transform: `rotate(${tilt}deg)` }}
     >
       <div
-        className="receipt-edge relative overflow-hidden rounded-t-[4px] px-3.5 pt-3.5 pb-5 shadow-[0_1px_2px_rgba(30,25,10,0.06),0_6px_18px_rgba(30,25,10,0.10)]"
+        className="receipt-edge relative overflow-hidden rounded-t-[4px] px-3.5 pt-3.5 pb-5 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_6px_18px_rgba(0,0,0,0.10)]"
         style={{ backgroundColor: "var(--color-card)" }}
       >
         <div className="receipt-texture pointer-events-none absolute inset-0" />
@@ -46,11 +46,11 @@ function Shell({
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className={`text-[9px] leading-[1.5] ${strong ? "text-ink" : "text-ink-soft"}`}>
+      <span className={`text-[10px] leading-[1.5] ${strong ? "text-ink" : "text-ink-soft"}`}>
         {label}
       </span>
       <span
-        className={`shrink-0 text-[9px] tabular-nums ${strong ? "font-semibold text-ink" : "text-ink-soft"}`}
+        className={`shrink-0 text-[10px] tabular-nums ${strong ? "font-semibold text-ink" : "text-ink-soft"}`}
       >
         {value}
       </span>
@@ -69,25 +69,25 @@ export function TaskReceipt({ data }: NodeProps) {
     <Shell tilt={-1.5} width={240}>
       {hiddenHandles()}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">{taskId}</span>
+        <span className="text-[12px] font-semibold uppercase tracking-[0.08em]">{taskId}</span>
         <RoleChip role="sponsor" />
       </div>
       <DashedRule />
-      <p className="text-[10px] leading-[1.5] text-ink-soft" style={{ display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+      <p className="text-[11px] leading-[1.5] text-ink-soft" style={{ display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
         {task.brief}
       </p>
       <DashedRule />
       <Row label="pot builders (80%)" value={fmt.format(task.prize - reserve)} />
       <Row label="reserve juges (20%)" value={fmt.format(reserve)} />
       <div className="mt-2 flex items-end justify-between">
-        <span className="text-[9px] uppercase tracking-[0.1em] text-ink-faint">prix</span>
-        <span className="text-[16px] font-semibold leading-none tabular-nums">
+        <span className="text-[10px] uppercase tracking-[0.1em] text-ink-faint">prix</span>
+        <span className="text-[18px] font-semibold leading-none tabular-nums">
           {fmt.format(task.prize)}
         </span>
       </div>
       <DashedRule />
       <div className="flex items-center justify-between">
-        <span className="text-[9px] text-ink-faint">h={height}</span>
+        <span className="text-[10px] text-ink-faint">h={height}</span>
         <Stamp value={task.state} />
       </div>
     </Shell>
@@ -109,22 +109,22 @@ export function SubmissionReceipt({ data }: NodeProps) {
     <Shell tilt={tilt}>
       {hiddenHandles()}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">{name}</span>
+        <span className="text-[12px] font-semibold uppercase tracking-[0.08em]">{name}</span>
         <RoleChip role="builder" />
       </div>
       <DashedRule />
       {submission === null ? (
-        <p className="text-[10px] italic text-ink-faint">aucun rendu (no-show)</p>
+        <p className="text-[11px] italic text-ink-faint">aucun rendu (no-show)</p>
       ) : submission.status === "COMMITTED" ? (
         <div className="space-y-1">
-          <p className="text-[10px] text-ink-faint">contenu scelle (commit-reveal)</p>
-          <p className="select-none text-[10px] tracking-[0.2em] text-ink-faint">
+          <p className="text-[11px] text-ink-faint">contenu scelle (commit-reveal)</p>
+          <p className="select-none text-[11px] tracking-[0.2em] text-ink-faint">
             ▓▓▓▓▓▓▓▓▓▓▓▓
           </p>
         </div>
       ) : (
         <p
-          className="whitespace-pre-wrap text-[9px] leading-[1.5] text-ink-soft"
+          className="whitespace-pre-wrap text-[10px] leading-[1.5] text-ink-soft"
           style={{ display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}
         >
           {submission.content}
@@ -132,7 +132,7 @@ export function SubmissionReceipt({ data }: NodeProps) {
       )}
       <DashedRule />
       <div className="flex items-center justify-between">
-        <span className="text-[9px] text-ink-faint">
+        <span className="text-[10px] text-ink-faint">
           {submission ? `commit h=${submission.height}` : "-"}
         </span>
         {submission && <Stamp value={submission.status} />}
@@ -141,8 +141,8 @@ export function SubmissionReceipt({ data }: NodeProps) {
         <>
           <DashedRule />
           <div className="flex items-end justify-between">
-            <span className="text-[9px] uppercase tracking-[0.1em] text-ink-faint">gain</span>
-            <span className="text-[14px] font-semibold tabular-nums text-amber">
+            <span className="text-[10px] uppercase tracking-[0.1em] text-ink-faint">gain</span>
+            <span className="text-[16px] font-semibold tabular-nums text-amber">
               {fmt.format(payout)}
             </span>
           </div>
@@ -170,12 +170,12 @@ export function JudgeReceipt({ data }: NodeProps) {
     <Shell tilt={tilt} width={190}>
       {hiddenHandles()}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">{name}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">{name}</span>
         <RoleChip role="juge" />
       </div>
       <DashedRule />
       {scores === null ? (
-        <p className="text-[9px] text-ink-faint">
+        <p className="text-[10px] text-ink-faint">
           {record === null ? "pas encore de notes" : "notes scellees ▓▓▓▓"}
         </p>
       ) : (
@@ -184,7 +184,7 @@ export function JudgeReceipt({ data }: NodeProps) {
             const value = scores[builder] ?? 0;
             return (
               <div key={builder} className="flex items-center gap-1.5">
-                <span className="w-3 text-[8px] text-ink-faint">
+                <span className="w-4 text-[9px] text-ink-faint">
                   {builder.slice(0, 2)}
                 </span>
                 <div className="h-[5px] flex-1 overflow-hidden rounded-full bg-line">
@@ -193,7 +193,7 @@ export function JudgeReceipt({ data }: NodeProps) {
                     style={{ width: `${total ? (value / total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="w-7 text-right text-[8px] tabular-nums text-ink-soft">
+                <span className="w-8 text-right text-[9px] tabular-nums text-ink-soft">
                   {total ? Math.round((value / total) * 100) : 0}%
                 </span>
               </div>
@@ -205,8 +205,8 @@ export function JudgeReceipt({ data }: NodeProps) {
         <>
           <DashedRule />
           <div className="flex items-end justify-between">
-            <span className="text-[8px] uppercase tracking-[0.1em] text-ink-faint">dividende</span>
-            <span className="text-[12px] font-semibold tabular-nums text-violet">
+            <span className="text-[9px] uppercase tracking-[0.1em] text-ink-faint">dividende</span>
+            <span className="text-[14px] font-semibold tabular-nums text-violet">
               {fmt.format(payout)}
             </span>
           </div>
@@ -230,23 +230,23 @@ export function SettlementReceipt({ data }: NodeProps) {
     <Shell tilt={1.5} width={240}>
       {hiddenHandles()}
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em]">
+        <span className="text-[12px] font-semibold uppercase tracking-[0.08em]">
           reglement yuma
         </span>
         <Stamp value={task.state} />
       </div>
       <DashedRule />
       {result === null ? (
-        <p className="text-[10px] text-ink-faint">
+        <p className="text-[11px] text-ink-faint">
           en attente de la cloture des fenetres...
         </p>
       ) : result.aborted ? (
-        <p className="text-[10px] text-ink-soft">
+        <p className="text-[11px] text-ink-soft">
           manche annulee ({result.aborted}) — prix rembourse au sponsor
         </p>
       ) : (
         <>
-          <p className="mb-1 text-[9px] uppercase tracking-[0.1em] text-ink-faint">builders</p>
+          <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-ink-faint">builders</p>
           {(result.builders ?? []).map((addr) => (
             <Row
               key={addr}
@@ -256,7 +256,7 @@ export function SettlementReceipt({ data }: NodeProps) {
             />
           ))}
           <DashedRule />
-          <p className="mb-1 text-[9px] uppercase tracking-[0.1em] text-ink-faint">juges</p>
+          <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-ink-faint">juges</p>
           {(result.judges ?? []).map((addr) => (
             <Row
               key={addr}
@@ -266,8 +266,8 @@ export function SettlementReceipt({ data }: NodeProps) {
           ))}
           <DashedRule />
           <div className="flex items-end justify-between">
-            <span className="text-[9px] uppercase tracking-[0.1em] text-ink-faint">total</span>
-            <span className="text-[16px] font-semibold tabular-nums">
+            <span className="text-[10px] uppercase tracking-[0.1em] text-ink-faint">total</span>
+            <span className="text-[18px] font-semibold tabular-nums">
               {fmt.format(task.prize)}
             </span>
           </div>

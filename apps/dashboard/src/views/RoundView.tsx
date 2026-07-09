@@ -8,6 +8,7 @@ import {
   ReactFlow,
   useEdgesState,
   useNodesState,
+  useReactFlow,
   type Edge,
   type Node,
 } from "@xyflow/react";
@@ -70,8 +71,8 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
     const flowNodes: Node[] = [];
     const flowEdges: Edge[] = [];
 
-    const buildersY = -((task.builders.length - 1) * 260) / 2;
-    const judgesY = -((task.judges.length - 1) * 165) / 2;
+    const buildersY = -((task.builders.length - 1) * 280) / 2;
+    const judgesY = -((task.judges.length - 1) * 180) / 2;
 
     flowNodes.push({
       id: "task",
@@ -85,7 +86,7 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
       flowNodes.push({
         id,
         type: "submission",
-        position: { x: 420, y: buildersY + index * 260 - 90 },
+        position: { x: 420, y: buildersY + index * 280 - 90 },
         data: {
           name: names[address] ?? address.slice(0, 8),
           submission: submissions[address] ?? null,
@@ -102,7 +103,7 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
       flowNodes.push({
         id,
         type: "judge",
-        position: { x: 830, y: judgesY + index * 165 - 60 },
+        position: { x: 830, y: judgesY + index * 180 - 60 },
         data: {
           name: names[address] ?? address.slice(0, 8),
           record: scores[address] ?? null,
@@ -121,14 +122,19 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
       data: { task, names },
     });
 
-    setNodes(flowNodes);
+    // Reporte les mesures des nodes existants : sans `measured`, React Flow v12
+    // repasse chaque node en visibility:hidden a chaque rebuild (canvas vide).
+    setNodes((current) => {
+      const measured = new Map(current.map((node) => [node.id, node.measured]));
+      return flowNodes.map((node) => ({ ...node, measured: measured.get(node.id) }));
+    });
     setEdges(flowEdges);
   }, [detail, network.names, network.height, taskId, setNodes, setEdges]);
 
   if (detail === null) {
     return (
       <div className="grid h-full place-items-center">
-        <p className="text-[12px] text-ink-faint">chargement de {taskId}...</p>
+        <p className="text-[13px] text-ink-faint">chargement de {taskId}...</p>
       </div>
     );
   }
@@ -149,11 +155,26 @@ export function RoundView({ network, taskId }: { network: Network; taskId: strin
         nodesConnectable={false}
         elementsSelectable={false}
       >
-        <Background variant={BackgroundVariant.Dots} gap={24} size={2.2} color="#cfc9b2" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={2.2} color="#dcdcdc" />
+        <AutoFit signature={`${taskId}|${detail.task.state}`} />
       </ReactFlow>
       <PhaseBar task={detail.task} height={network.height} />
     </div>
   );
+}
+
+// Les recus grandissent a chaque phase (reveals, notes, reglement) et sortaient
+// du cadre : on re-cadre a chaque changement d'etat de la manche.
+function AutoFit({ signature }: { signature: string }) {
+  const { fitView } = useReactFlow();
+  useEffect(() => {
+    const timer = setTimeout(
+      () => fitView({ padding: 0.12, duration: 400 }),
+      80, // laisse React Flow mesurer les recus re-rendus
+    );
+    return () => clearTimeout(timer);
+  }, [signature, fitView]);
+  return null;
 }
 
 function PhaseBar({ task, height }: { task: TaskDetail["task"]; height: number }) {
@@ -165,10 +186,10 @@ function PhaseBar({ task, height }: { task: TaskDetail["task"]; height: number }
   ];
   return (
     <div
-      className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-[8px] px-3 py-2 shadow-[0_1px_4px_rgba(30,25,10,0.10)]"
+      className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 rounded-[8px] px-3 py-2 shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_1px_4px_rgba(0,0,0,0.08)]"
       style={{ backgroundColor: "var(--color-card)" }}
     >
-      <span className="text-[9px] font-semibold uppercase tracking-[0.12em]">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
         {task.state}
       </span>
       {phases.map((phase, index) => {
@@ -187,13 +208,13 @@ function PhaseBar({ task, height }: { task: TaskDetail["task"]; height: number }
                     : "var(--color-line)",
               }}
             />
-            <span className="text-[8px] uppercase tracking-[0.08em] text-ink-faint">
+            <span className="text-[10px] uppercase tracking-[0.08em] text-ink-faint">
               {phase.label}≤{phase.until}
             </span>
           </span>
         );
       })}
-      <span className="text-[9px] tabular-nums text-ink-soft">h={height}</span>
+      <span className="text-[11px] tabular-nums text-ink-soft">h={height}</span>
     </div>
   );
 }

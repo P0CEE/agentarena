@@ -13,7 +13,7 @@ BLOCK_TAG = "agentarena/block/v1"
 TXROOT_TAG = "agentarena/txroot/v1"
 GENESIS_PREV = "0" * 64
 
-HEADER_FIELDS = {"height", "prev_hash", "proposer", "round", "tx_root", "state_root"}
+HEADER_FIELDS = {"height", "prev_hash", "proposer", "round", "tx_root", "state_root", "timestamp"}
 
 
 def tx_root(txids: list[str]) -> str:
@@ -31,6 +31,7 @@ def make_header(
     round_: int,
     tx_root_: str,
     state_root: str,
+    timestamp: int,
 ) -> dict:
     return {
         "height": height,
@@ -39,6 +40,7 @@ def make_header(
         "round": round_,
         "tx_root": tx_root_,
         "state_root": state_root,
+        "timestamp": timestamp,
     }
 
 
@@ -60,6 +62,9 @@ def verify_block(block: dict, prev_header: dict) -> None:
         raise InvalidBlock(f"hauteur {header['height']} != {prev_header['height'] + 1}")
     if header["prev_hash"] != block_hash(prev_header):
         raise InvalidBlock("prev_hash ne chaine pas sur le bloc precedent")
+    # Monotonie seule, jamais l'horloge locale : le replay/catch-up reste deterministe.
+    if header["timestamp"] <= prev_header["timestamp"]:
+        raise InvalidBlock("timestamp non strictement croissant")
     try:
         ids = [verify_tx(tx) for tx in block["txs"]]
     except InvalidTx as exc:

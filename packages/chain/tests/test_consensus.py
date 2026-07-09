@@ -58,7 +58,8 @@ def test_quorum_strictement_superieur_a_deux_tiers() -> None:
 
 def test_verify_qc() -> None:
     header = {"height": 1, "round": 0, "proposer": V[0].address,
-              "prev_hash": "0" * 64, "tx_root": "0" * 64, "state_root": "0" * 64}
+              "prev_hash": "0" * 64, "tx_root": "0" * 64, "state_root": "0" * 64,
+              "timestamp": 1}
     hash_ = block_hash(header)
     votes = {w.address: make_vote(w, 1, 0, hash_) for w in V[:3]}
     verify_qc(EQUAL, header, hash_, votes)  # passe

@@ -89,6 +89,7 @@ def test_catch_up_d_un_node_en_retard() -> None:
         assert late.height == 3
         reference = next(iter(cluster.values()))
         assert late.state.root() == reference.state.root()
+        assert late.last_header == reference.last_header  # rejeu : memes hashes
 
     run(scenario())
 

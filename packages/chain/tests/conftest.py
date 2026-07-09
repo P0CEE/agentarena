@@ -35,8 +35,11 @@ class Net:
         return tx
 
     def tick(self, txs: list[dict] | None = None) -> dict:
+        # Timestamp deterministe (jamais l'horloge) : les golden tests comparent
+        # des state roots entre deux runs, et prev_hash seede la sortition.
         new_state, block = seal_block(
-            self.state, self.header, txs or [], proposer="test", round_=0
+            self.state, self.header, txs or [], proposer="test", round_=0,
+            timestamp=self.header["timestamp"] + 1,
         )
         self.state = new_state
         self.header = block["header"]

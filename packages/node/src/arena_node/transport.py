@@ -16,10 +16,14 @@ class Transport(Protocol):
 
     async def fetch_blocks(self, peer: str, from_height: int) -> list[dict]: ...
 
+    async def probe(self, peer: str) -> dict: ...
+
 
 class HttpTransport:
     def __init__(self, timeout: float = 2.0) -> None:
-        self._client = httpx.AsyncClient(timeout=timeout)
+        # follow_redirects=False (defaut httpx, fige ici) : le handshake de
+        # /nodes/register ne doit jamais etre redirige vers un autre hote.
+        self._client = httpx.AsyncClient(timeout=timeout, follow_redirects=False)
 
     async def send(self, peer: str, path: str, payload: dict) -> None:
         try:
@@ -31,3 +35,9 @@ class HttpTransport:
         response = await self._client.get(f"{peer}/blocks", params={"from": from_height})
         response.raise_for_status()
         return response.json()["blocks"]
+
+    async def probe(self, peer: str) -> dict:
+        """Handshake d'enregistrement : le /status du pair, ou une exception."""
+        response = await self._client.get(f"{peer}/status")
+        response.raise_for_status()
+        return response.json()

@@ -3,7 +3,7 @@
 Config attendue :
 {
   "seed": "<64 hex>", "port": 8001, "peers": ["http://127.0.0.1:8002", ...],
-  "genesis": {"allocations": {addr: int}, "agents": {addr: int}},
+  "genesis": {"allocations": {addr: int}, "agents": {addr: int}, "timestamp": ms},
   "agent": {"kind": "stub" | "mistral", "model": "...", "timeout_s": 30},
   "block_time": 2.0, "round_timeout": 8.0
 }
@@ -33,6 +33,7 @@ def build_node(config: dict, transport=None) -> tuple[Engine, AgentRunner, Walle
     state, genesis_block = make_genesis(
         {addr: int(v) for addr, v in genesis["allocations"].items()},
         {addr: int(v) for addr, v in genesis.get("agents", {}).items()},
+        int(genesis.get("timestamp", 0)),
     )
     engine = Engine(
         wallet,

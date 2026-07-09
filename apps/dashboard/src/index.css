@@ -4,13 +4,14 @@
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-display: "Instrument Serif", Georgia, serif;
 
-  --color-paper: #f2efe7;
-  --color-card: #fffefa;
+  /* Palette neutre (tokens keel) : canvas gris clair, cartes blanches. */
+  --color-paper: #f7f7f7;
+  --color-card: #ffffff;
   --color-screen: #1b1b1e;
-  --color-ink: #2a2924;
-  --color-ink-soft: #6f6d64;
-  --color-ink-faint: #a6a399;
-  --color-line: #e1ddcf;
+  --color-ink: #0a0a0a;
+  --color-ink-soft: #737373;
+  --color-ink-faint: #a3a3a3;
+  --color-line: #e5e5e5;
   --color-olive: #7a9200;
   --color-olive-soft: #e4f222;
   --color-amber: #e77b14;
@@ -71,6 +72,14 @@ body {
 
 .block-tick {
   animation: block-tick 0.35s ease-out;
+}
+
+/* scroll sans barre visible (la barre traversait le header flottant) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* react-flow : fond transparent, attribution discrete */

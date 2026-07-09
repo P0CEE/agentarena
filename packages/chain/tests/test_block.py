@@ -66,6 +66,20 @@ def test_tx_dupliquee_rejetee() -> None:
         verify_block(block1, genesis["header"])
 
 
+def test_timestamp_non_monotone_rejete() -> None:
+    state, genesis = make_genesis(ALLOCATIONS)
+    _, block1 = seal_block(
+        state,
+        genesis["header"],
+        [],
+        proposer=ALICE.address,
+        round_=0,
+        timestamp=genesis["header"]["timestamp"],  # egal au precedent : interdit
+    )
+    with pytest.raises(InvalidBlock, match="timestamp"):
+        verify_block(block1, genesis["header"])
+
+
 def test_hash_du_header_seul() -> None:
     # Ajouter des donnees hors header (futurs votes) ne change pas le hash.
     genesis, block1 = _chain_with_one_block()

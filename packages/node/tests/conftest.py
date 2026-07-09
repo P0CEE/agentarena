@@ -44,6 +44,12 @@ class DirectTransport:
             raise ConnectionError(f"peer mort: {peer}")
         return engine.blocks[from_height:]
 
+    async def probe(self, peer: str) -> dict:
+        engine = self.registry.get(peer)
+        if engine is None:
+            raise ConnectionError(f"peer mort: {peer}")
+        return {"address": engine.wallet.address}
+
 
 def make_cluster(n: int = 4) -> dict[str, Engine]:
     """n engines partageant le même genesis, reliés par un DirectTransport."""

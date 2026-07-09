@@ -1,4 +1,5 @@
 // Le composer sponsor : soumettre une task (brief + prix) au node de référence.
+// Style « input flottant » : verre depoli, bordure fine, bouton fleche.
 
 import { useState } from "react";
 import { createTask } from "../api";
@@ -35,7 +36,7 @@ export function Composer({
   }
 
   return (
-    <div className="rounded-[10px] bg-card p-3 shadow-[0_1px_2px_rgba(30,25,10,0.05),0_6px_16px_rgba(30,25,10,0.07)]">
+    <div className="rounded-[8px] border border-line bg-card/90 p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-md">
       <div className="mb-2 flex items-center gap-2">
         <RoleChip role="sponsor" />
         <span className="text-[10px] uppercase tracking-[0.1em] text-ink-soft">
@@ -45,12 +46,12 @@ export function Composer({
       <textarea
         value={brief}
         onChange={(event) => setBrief(event.target.value)}
-        rows={4}
-        className="w-full resize-none rounded-[6px] border border-line bg-paper/60 p-2 text-[11px] leading-[1.5] text-ink outline-none focus:border-ink-faint"
+        rows={3}
+        className="w-full resize-none rounded-[6px] border border-line px-2.5 py-2 text-[12px] leading-[1.6] text-ink outline-none transition placeholder:text-ink-faint focus:border-ink/25"
         placeholder="Le brief pour les builders..."
       />
-      <div className="mt-2 flex items-center gap-2">
-        <label className="flex flex-1 items-center gap-2 rounded-[6px] border border-line px-2 py-1.5">
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <label className="flex items-center gap-1.5 rounded-[6px] border border-line px-2.5 py-1.5">
           <span className="text-[9px] uppercase tracking-[0.1em] text-ink-faint">prix</span>
           <input
             type="number"
@@ -58,18 +59,25 @@ export function Composer({
             min={10_000}
             step={5_000}
             onChange={(event) => setPrize(Number(event.target.value))}
-            className="w-full bg-transparent text-right text-[11px] tabular-nums outline-none"
+            className="w-20 bg-transparent text-right text-[12px] tabular-nums outline-none"
           />
         </label>
         <button
           onClick={submit}
           disabled={disabled || pending || brief.trim().length === 0}
-          className="rounded-[6px] bg-ink px-3 py-2 text-[11px] font-semibold text-paper transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="lancer la manche"
+          className="flex size-7 shrink-0 items-center justify-center rounded-[6px] bg-ink text-paper transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {pending ? "..." : "lancer"}
+          {pending ? (
+            "…"
+          ) : (
+            <svg viewBox="0 0 256 256" className="size-3.5" fill="currentColor" aria-hidden="true">
+              <path d="M205.66,117.66a8,8,0,0,1-11.32,0L136,59.31V216a8,8,0,0,1-16,0V59.31L61.66,117.66a8,8,0,0,1-11.32-11.32l72-72a8,8,0,0,1,11.32,0l72,72A8,8,0,0,1,205.66,117.66Z" />
+            </svg>
+          )}
         </button>
       </div>
-      {error && <p className="mt-2 text-[10px] text-danger">{error}</p>}
+      {error && <p className="mt-2 text-[11px] text-danger">{error}</p>}
     </div>
   );
 }

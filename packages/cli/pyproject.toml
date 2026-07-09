@@ -1,13 +1,15 @@
 [project]
 name = "arena-cli"
 version = "0.1.0"
-description = "CLI Typer : init, start, stop, status, task create, demo"
+description = "CLI Typer : arena, la commande unique (assistant, lancement, moniteur)"
 requires-python = ">=3.12"
 dependencies = [
     "arena-chain",
     "arena-node",
-    "typer>=0.15",
+    "typer>=0.26",
     "httpx>=0.28",
+    "rich>=15",
+    "questionary>=2.1",
 ]
 
 [project.scripts]

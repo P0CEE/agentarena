@@ -11,7 +11,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from arena_chain.block import block_hash
 from arena_chain.errors import ChainError
-from arena_chain.tx import make_tx
+from arena_chain.tx import make_tx, txid
 from arena_chain.wallet import Wallet
 
 from arena_node.engine import Engine
@@ -48,6 +48,109 @@ def create_app(
         except ChainError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return {"txid": tid}
+
+    @app.post("/transactions/new", status_code=201)
+    async def transactions_new(request: Request) -> dict:
+        """Route du sujet : transfer custodial, le node signe avec un wallet qu'il detient."""
+        body = await request.json()
+        held = {w.address: w for w in (sponsor_wallet, engine.wallet) if w is not None}
+        sender = body.get("sender")
+        if sender is None:
+            if sponsor_wallet is None:
+                raise HTTPException(
+                    status_code=400, detail="pas de wallet sponsor sur ce node : precisez sender"
+                )
+            wallet = sponsor_wallet
+        else:
+            wallet = held.get(sender)
+            if wallet is None:
+                raise HTTPException(
+                    status_code=400, detail=f"le node ne detient pas la seed de {sender}"
+                )
+        recipient, amount = body.get("recipient"), body.get("amount")
+        if not isinstance(recipient, str) or not recipient:
+            raise HTTPException(status_code=400, detail="recipient requis")
+        if type(amount) is not int:
+            raise HTTPException(status_code=400, detail="amount entier requis")
+        account = engine.state.data["accounts"].get(wallet.address, {"nonce": 0})
+        pending = sum(1 for tx in engine.mempool.values() if tx["sender"] == wallet.address)
+        tx = make_tx(
+            wallet,
+            account["nonce"] + pending,
+            {"type": "transfer", "to": recipient, "amount": amount},
+        )
+        # Meme pattern que /sponsor/tasks : validation immediate sur un clone,
+        # une tx invalide est refusee en 400 au lieu d'etre abandonnee au seal.
+        probe = engine.state.clone()
+        probe.begin_block(engine.next_height, block_hash(engine.last_header))
+        try:
+            probe.apply_tx(tx)
+            tid = await engine.handle_tx(tx)
+        except ChainError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"txid": tid, "block_pending": True}
+
+    @app.get("/mine")
+    async def mine() -> dict:
+        """Route du sujet : chaine BFT a production automatique, pas de scellement
+        force — attend la finalisation du prochain bloc et le retourne."""
+        queue = engine.subscribe()
+        target = engine.next_height
+        timeout_s = 3 * engine.block_time + 2 * engine.round_timeout
+
+        async def prochain_bloc() -> None:
+            while engine.height < target:
+                await queue.get()
+
+        try:
+            await asyncio.wait_for(prochain_bloc(), timeout=timeout_s)
+        except asyncio.TimeoutError as exc:
+            raise HTTPException(
+                status_code=504,
+                detail=f"aucun bloc finalise apres {timeout_s:.1f}s : reseau halte "
+                "(moins de 2/3 du stake vivant ?)",
+            ) from exc
+        finally:
+            engine.unsubscribe(queue)
+        entry = engine.blocks[target]
+        header = entry["block"]["header"]
+        return {
+            "block": entry["block"],
+            "hash": block_hash(header),
+            "txids": [txid(tx) for tx in entry["block"]["txs"]],
+            "consensus": {
+                "proposer": header["proposer"],
+                "round": header["round"],
+                "voters": sorted(entry["qc"]),
+            },
+        }
+
+    @app.post("/nodes/register")
+    async def nodes_register(request: Request) -> dict:
+        """Route du sujet : enregistre un pair de gossip/catch-up.
+
+        Le set de validateurs reste fixe au genesis — un pair enregistre
+        recoit et relaie, il ne vote pas.
+        """
+        body = await request.json()
+        url = body.get("url")
+        if not isinstance(url, str) or not url.startswith(("http://", "https://")):
+            raise HTTPException(status_code=400, detail="url http(s) requise")
+        url = url.rstrip("/")
+        if url not in engine.peers:
+            try:
+                status = await engine.transport.probe(url)
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=400, detail=f"pair injoignable: {url}"
+                ) from exc
+            if status.get("address") == engine.wallet.address:
+                raise HTTPException(
+                    status_code=400, detail="un node ne s'enregistre pas lui-meme"
+                )
+            engine.peers.append(url)
+            engine.behind = True  # la boucle run rattrape la chaine au prochain tick
+        return {"peers": list(engine.peers)}
 
     # --- P2P (fire-and-forget entre nodes) ---
 
@@ -117,10 +220,26 @@ def create_app(
             "proposer_next": engine.is_proposer(),
         }
 
+    @app.get("/nodes")
+    async def nodes() -> dict:
+        return {"peers": list(engine.peers)}
+
     @app.get("/blocks")
     async def blocks(request: Request) -> dict:
         start = int(request.query_params.get("from", 0))
-        return {"blocks": engine.blocks[start:]}
+        # "hash" et "txids" sont ajoutes pour le dashboard, au niveau de
+        # l'entree : le catch-up P2P ne lit que "block" et "qc", et verify_tx
+        # rejetterait un champ en trop DANS une tx.
+        return {
+            "blocks": [
+                entry
+                | {
+                    "hash": block_hash(entry["block"]["header"]),
+                    "txids": [txid(tx) for tx in entry["block"]["txs"]],
+                }
+                for entry in engine.blocks[start:]
+            ]
+        }
 
     @app.get("/chain")
     async def chain(request: Request) -> dict:
